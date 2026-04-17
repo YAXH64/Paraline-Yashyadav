@@ -12,7 +12,6 @@ internal static class Program
         {
             using var capture = new WasapiLoopbackCapture();
 
-            Console.Error.WriteLine("WASAPI loopback capture started.");
 
             while (true)
             {
