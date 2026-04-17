@@ -40,3 +40,27 @@ function resizeOverlayToPrimaryDisplay() {
   if (!overlayWindow) {
     return;
   }
+
+  const { bounds } = screen.getPrimaryDisplay();
+  overlayWindow.setBounds(bounds);
+}
+
+app.whenReady().then(() => {
+  createOverlayWindow();
+
+  screen.on("display-metrics-changed", resizeOverlayToPrimaryDisplay);
+  screen.on("display-added", resizeOverlayToPrimaryDisplay);
+  screen.on("display-removed", resizeOverlayToPrimaryDisplay);
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createOverlayWindow();
+    }
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
