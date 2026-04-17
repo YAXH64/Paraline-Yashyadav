@@ -1,6 +1,9 @@
-const { app, BrowserWindow, screen } = require("electron");
+const { app, BrowserWindow, ipcMain, screen } = require("electron");
+const { createAudioBridge } = require("./audioBridge");
 
 let overlayWindow;
+let audioBridge;
+let fakeTimer;
 
 function createOverlayWindow() {
   const { bounds } = screen.getPrimaryDisplay();
@@ -22,7 +25,8 @@ function createOverlayWindow() {
     backgroundColor: "#00000000",
     webPreferences: {
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      preload: require("path").join(__dirname, "preload.js")
     }
   });
 
@@ -36,6 +40,34 @@ function createOverlayWindow() {
   });
 }
 
+function sendAudioLevel(value, source) {
+  if (!overlayWindow || overlayWindow.isDestroyed()) {
+    return;
+  }
+
+  overlayWindow.webContents.send("audio-level", {
+    value,
+    source
+  });
+}
+
+function startSimulatedAudioFallback() {
+  stopSimulatedAudioFallback();
+
+  fakeTimer = setInterval(() => {
+    const now = Date.now();
+    const level = 0.15 + (Math.sin(now * 0.001 * 0.45) + 1) * 0.08;
+    sendAudioLevel(level, "simulated");
+  }, 33);
+}
+
+function stopSimulatedAudioFallback() {
+  if (fakeTimer) {
+    clearInterval(fakeTimer);
+    fakeTimer = null;
+  }
+}
+
 function resizeOverlayToPrimaryDisplay() {
   if (!overlayWindow) {
     return;
@@ -47,10 +79,27 @@ function resizeOverlayToPrimaryDisplay() {
 
 app.whenReady().then(() => {
   createOverlayWindow();
+  audioBridge = createAudioBridge((value) => {
+    stopSimulatedAudioFallback();
+    sendAudioLevel(value, "helper");
+  });
+  audioBridge.start();
+  startSimulatedAudioFallback();
 
   screen.on("display-metrics-changed", resizeOverlayToPrimaryDisplay);
   screen.on("display-added", resizeOverlayToPrimaryDisplay);
   screen.on("display-removed", resizeOverlayToPrimaryDisplay);
+
+  ipcMain.handle("audio-bridge-status", () => {
+    if (!audioBridge) {
+      return {
+        mode: "simulated",
+        reason: "Audio bridge not created yet."
+      };
+    }
+
+    return audioBridge.getStatus();
+  });
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -60,6 +109,12 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
+  if (audioBridge) {
+    audioBridge.stop();
+  }
+
+  stopSimulatedAudioFallback();
+
   if (process.platform !== "darwin") {
     app.quit();
   }
