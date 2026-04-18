@@ -5,7 +5,11 @@ console.log("[debug] renderer loaded");
 
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
+const FLOW_TARGET_FPS = 60;
+const FLOW_FRAME_INTERVAL = 1000 / FLOW_TARGET_FPS;
 const MAX_DEVICE_SCALE = 1.25;
+const RAINBOW_BORDER_INSET = 0;
+const RAINBOW_SEGMENT_LENGTH = 72;
 
 let width = 0;
 let height = 0;
@@ -21,6 +25,8 @@ let debugPanel;
 let lastDebugPaintAt = 0;
 let lastFrameAt = 0;
 let edgeGradient;
+let lastRainbowMetricsAt = 0;
+let flowTravelDistance = 0;
 let visualizerState = {
   sensitivity: 3.2,
   theme: "blue",
@@ -63,7 +69,10 @@ function clamp01(value) {
 }
 
 function rebuildCachedPaint() {
-  const theme = THEMES[visualizerState.theme] || THEMES.blue;
+  const theme = visualizerState.selectedTheme === "ambientWave"
+    ? getAmbientTonePalette()
+    : TRANSPARENT_HAZE;
+
   edgeGradient = context.createLinearGradient(0, 0, 0, height);
   edgeGradient.addColorStop(0, theme.hazeTop);
   edgeGradient.addColorStop(0.16, "rgba(0, 0, 0, 0)");
@@ -155,7 +164,7 @@ function updateAudioLevel(now) {
   smoothedLevel += ((incomingLevel + breathing) - smoothedLevel) * response;
 }
 
-function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity) {
+function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity, glowScale = 1) {
   const step = 20;
   const phaseA = time * speed;
   const phaseB = time * speed * 0.52;
@@ -177,20 +186,20 @@ function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity)
 
   context.strokeStyle = color;
   context.lineWidth = lineWidth;
-  context.globalAlpha = opacity;
-  context.shadowBlur = opacity > 0.5 ? 12 + amplitude * 0.22 : 0;
+  context.globalAlpha = opacity * glowScale;
+  context.shadowBlur = opacity > 0.5 ? (12 + amplitude * 0.22) * glowScale : 0;
   context.shadowColor = color;
   context.stroke();
 }
 
-function drawGlowBand() {
-  context.globalAlpha = 1;
+function drawGlowBand(glowScale = 1) {
+  context.globalAlpha = glowScale;
   context.shadowBlur = 0;
   context.fillStyle = edgeGradient;
   context.fillRect(0, 0, width, height);
 }
 
-function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness) {
+function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness, alphaScale = 1) {
   const step = 24;
   const phaseA = time * speed;
   const phaseB = time * speed * 0.45;
@@ -208,7 +217,7 @@ function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness) {
   context.lineTo(0, yBase + thickness);
   context.closePath();
 
-  context.globalAlpha = 1;
+  context.globalAlpha = alphaScale;
   context.shadowBlur = 0;
   context.fillStyle = color;
   context.fill();
@@ -217,15 +226,22 @@ function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness) {
 function renderFrame(now) {
   requestAnimationFrame(renderFrame);
 
-  if (lastFrameAt && now - lastFrameAt < FRAME_INTERVAL) {
+  const activeFrameInterval = visualizerState.selectedTheme === "flowBorder"
+    ? FLOW_FRAME_INTERVAL
+    : FRAME_INTERVAL;
+
+  if (lastFrameAt && now - lastFrameAt < activeFrameInterval) {
     return;
   }
 
-  const deltaMs = lastFrameAt ? now - lastFrameAt : FRAME_INTERVAL;
+  const deltaMs = lastFrameAt ? now - lastFrameAt : activeFrameInterval;
   lastFrameAt = now;
 
   if (!visualizerState.paused) {
     time += deltaMs * 0.001;
+    const flowSpeedProfile = getFlowSpeedProfile();
+    const flowSpeed = flowSpeedProfile.base + smoothedLevel * flowSpeedProfile.boost;
+    flowTravelDistance += deltaMs * 0.001 * flowSpeed * getFlowDirectionValue();
   }
 
   updateAudioLevel(now);
@@ -269,12 +285,12 @@ function applySettings(nextSettings) {
     visualizerState.theme = "blue";
   }
 
-  if (!["top", "bottom", "both"].includes(visualizerState.edgeMode)) {
-    visualizerState.edgeMode = "bottom";
+  if (!["soft", "medium", "strong"].includes(visualizerState.flowBorder.glowStrength)) {
+    visualizerState.flowBorder.glowStrength = "medium";
   }
 
-  if (!Number.isFinite(visualizerState.sensitivity)) {
-    visualizerState.sensitivity = 3.2;
+  if (!["rainbow", "cool", "warm"].includes(visualizerState.flowBorder.colorStyle)) {
+    visualizerState.flowBorder.colorStyle = "rainbow";
   }
 
   rebuildCachedPaint();
@@ -293,7 +309,7 @@ if (window.audioBridge) {
       latestSource = payload.source || "unknown";
       lastPayloadValue = payload.value;
       incomingLevel = latestSource === "helper"
-        ? clamp01(payload.value * visualizerState.sensitivity)
+        ? clamp01(payload.value * getActiveAudioMultiplier())
         : clamp01(payload.value);
     }
   });
