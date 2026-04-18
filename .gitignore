@@ -6,5 +6,3 @@ bin/
 obj/
 
 *.csproj.user
-
-docs/
