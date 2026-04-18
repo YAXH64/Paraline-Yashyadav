@@ -228,6 +228,7 @@ function buildAmbientWaveMenuItems() {
       }))
     }
   ];
+}
 
 function buildReactiveBorderMenuItems() {
   const reactiveSettings = visualizerSettings.reactiveBorder;
@@ -378,17 +379,11 @@ function refreshTrayMenu() {
       click: () => togglePaused()
     },
     {
-      label: "Theme",
-      submenu: buildThemeMenuItems()
+      label: "Visualizer Mode",
+      submenu: buildMainThemeMenuItems()
     },
-    {
-      label: "Sensitivity",
-      submenu: buildSensitivityMenuItems()
-    },
-    {
-      label: "Edge Mode",
-      submenu: buildEdgeModeMenuItems()
-    },
+    { type: "separator" },
+    ...buildActiveThemeMenuItems(),
     { type: "separator" },
     {
       label: "Quit App",
@@ -397,7 +392,7 @@ function refreshTrayMenu() {
   ]);
 
   tray.setContextMenu(menu);
-  tray.setToolTip("Paraline Visualizer");
+  tray.setToolTip(`Paraline Visualizer - ${THEME_LABELS[visualizerSettings.selectedTheme]}`);
 }
 
 function createTray() {
