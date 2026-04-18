@@ -247,27 +247,39 @@ function renderFrame(now) {
   updateAudioLevel(now);
 
   context.clearRect(0, 0, width, height);
-  drawGlowBand();
 
-  const theme = THEMES[visualizerState.theme] || THEMES.blue;
+  const ambientTheme = getAmbientTonePalette();
+  const isReactiveBorderTheme = visualizerState.selectedTheme === "reactiveBorder";
+  const isFlowTheme = visualizerState.selectedTheme === "flowBorder";
   const helperDriven = latestSource === "helper";
-  const drawTop = visualizerState.edgeMode === "top" || visualizerState.edgeMode === "both";
-  const drawBottom = visualizerState.edgeMode === "bottom" || visualizerState.edgeMode === "both";
-  const topBase = 66 + smoothedLevel * 10;
-  const bottomBase = height - 62 - smoothedLevel * 18;
-  const primaryAmplitude = helperDriven ? 8 + smoothedLevel * 38 : 5 + smoothedLevel * 12;
-  const secondaryAmplitude = helperDriven ? 3 + smoothedLevel * 16 : 2 + smoothedLevel * 6;
+  if (isReactiveBorderTheme) {
+    drawReactiveBorder();
+  } else if (isFlowTheme) {
+    drawFlowBorder();
+  } else {
+    const ambientSettings = getAmbientWaveSettings();
+    const glowScale = getGlowMultiplier(ambientSettings.glowStrength);
 
-  if (drawTop) {
-    drawSoftFill(topBase, primaryAmplitude * 0.6, 0.0064, 0.28, theme.topGlow, 28);
-    drawWave(topBase, primaryAmplitude * 0.6, 0.0088, 0.26, theme.topLine, 1.05, 0.56);
-    drawWave(topBase + 6, secondaryAmplitude * 0.55, 0.0112, 0.34, theme.topGlow, 0.8, 0.18);
-  }
+    drawGlowBand(glowScale);
 
-  if (drawBottom) {
-    drawSoftFill(bottomBase, primaryAmplitude * 0.9, 0.007, 0.32, theme.bottomGlow, 40);
-    drawWave(bottomBase, primaryAmplitude * 0.9, 0.0102, 0.34, theme.bottomLine, 1.25, 0.68);
-    drawWave(bottomBase - 8, secondaryAmplitude, 0.013, 0.48, theme.bottomGlow, 0.9, 0.28);
+    const drawTop = ambientSettings.edgeMode === "top" || ambientSettings.edgeMode === "both";
+    const drawBottom = ambientSettings.edgeMode === "bottom" || ambientSettings.edgeMode === "both";
+    const topBase = 66 + smoothedLevel * 10;
+    const bottomBase = height - 62 - smoothedLevel * 18;
+    const primaryAmplitude = helperDriven ? 8 + smoothedLevel * 38 : 5 + smoothedLevel * 12;
+    const secondaryAmplitude = helperDriven ? 3 + smoothedLevel * 16 : 2 + smoothedLevel * 6;
+
+    if (drawTop) {
+      drawSoftFill(topBase, primaryAmplitude * 0.6, 0.0064, 0.28, ambientTheme.topGlow, 28, glowScale);
+      drawWave(topBase, primaryAmplitude * 0.6, 0.0088, 0.26, ambientTheme.topLine, 1.05, 0.56, glowScale);
+      drawWave(topBase + 6, secondaryAmplitude * 0.55, 0.0112, 0.34, ambientTheme.topGlow, 0.8, 0.18, glowScale);
+    }
+
+    if (drawBottom) {
+      drawSoftFill(bottomBase, primaryAmplitude * 0.9, 0.007, 0.32, ambientTheme.bottomGlow, 40, glowScale);
+      drawWave(bottomBase, primaryAmplitude * 0.9, 0.0102, 0.34, ambientTheme.bottomLine, 1.25, 0.68, glowScale);
+      drawWave(bottomBase - 8, secondaryAmplitude, 0.013, 0.48, ambientTheme.bottomGlow, 0.9, 0.28, glowScale);
+    }
   }
 
   context.globalAlpha = 1;
@@ -278,11 +290,67 @@ function renderFrame(now) {
 function applySettings(nextSettings) {
   visualizerState = {
     ...visualizerState,
-    ...nextSettings
+    ...nextSettings,
+    ambientWave: {
+      ...visualizerState.ambientWave,
+      ...(nextSettings?.ambientWave || {})
+    },
+    reactiveBorder: {
+      ...visualizerState.reactiveBorder,
+      ...(nextSettings?.reactiveBorder || {})
+    },
+    flowBorder: {
+      ...visualizerState.flowBorder,
+      ...(nextSettings?.flowBorder || {})
+    }
   };
 
-  if (!THEMES[visualizerState.theme]) {
-    visualizerState.theme = "blue";
+  if (!["ambientWave", "reactiveBorder", "flowBorder"].includes(visualizerState.selectedTheme)) {
+    visualizerState.selectedTheme = "ambientWave";
+  }
+
+  if (!["blue", "purple", "warm"].includes(visualizerState.ambientWave.tone)) {
+    visualizerState.ambientWave.tone = "blue";
+  }
+
+  if (!["low", "medium", "high"].includes(visualizerState.ambientWave.sensitivity)) {
+    visualizerState.ambientWave.sensitivity = "medium";
+  }
+
+  if (!["top", "bottom", "both"].includes(visualizerState.ambientWave.edgeMode)) {
+    visualizerState.ambientWave.edgeMode = "bottom";
+  }
+
+  if (!["soft", "medium", "strong"].includes(visualizerState.ambientWave.glowStrength)) {
+    visualizerState.ambientWave.glowStrength = "medium";
+  }
+
+  if (!["rainbow", "neonBlue", "neonPurple", "warmGlow"].includes(visualizerState.reactiveBorder.colorStyle)) {
+    visualizerState.reactiveBorder.colorStyle = "rainbow";
+  }
+
+  if (!["low", "medium", "high"].includes(visualizerState.reactiveBorder.intensity)) {
+    visualizerState.reactiveBorder.intensity = "medium";
+  }
+
+  if (!["thin", "medium"].includes(visualizerState.reactiveBorder.borderThickness)) {
+    visualizerState.reactiveBorder.borderThickness = "thin";
+  }
+
+  if (!["soft", "medium", "strong"].includes(visualizerState.reactiveBorder.glowStrength)) {
+    visualizerState.reactiveBorder.glowStrength = "medium";
+  }
+
+  if (!["clockwise", "anticlockwise"].includes(visualizerState.flowBorder.direction)) {
+    visualizerState.flowBorder.direction = "clockwise";
+  }
+
+  if (!["calm", "balanced", "energetic"].includes(visualizerState.flowBorder.speedMode)) {
+    visualizerState.flowBorder.speedMode = "balanced";
+  }
+
+  if (!["short", "medium", "long"].includes(visualizerState.flowBorder.segmentLength)) {
+    visualizerState.flowBorder.segmentLength = "medium";
   }
 
   if (!["soft", "medium", "strong"].includes(visualizerState.flowBorder.glowStrength)) {
