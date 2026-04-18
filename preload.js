@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+console.log("[debug] preload loaded");
+
 contextBridge.exposeInMainWorld("audioBridge", {
   onLevel(listener) {
     const wrapped = (_event, payload) => listener(payload);
@@ -11,5 +13,19 @@ contextBridge.exposeInMainWorld("audioBridge", {
   },
   getStatus() {
     return ipcRenderer.invoke("audio-bridge-status");
+  }
+});
+
+contextBridge.exposeInMainWorld("visualizerSettings", {
+  onChange(listener) {
+    const wrapped = (_event, payload) => listener(payload);
+    ipcRenderer.on("visualizer-settings", wrapped);
+
+    return () => {
+      ipcRenderer.removeListener("visualizer-settings", wrapped);
+    };
+  },
+  get() {
+    return ipcRenderer.invoke("visualizer-settings:get");
   }
 });
