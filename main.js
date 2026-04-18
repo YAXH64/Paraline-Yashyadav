@@ -11,8 +11,16 @@ let isPaused = false;
 let settingsStore;
 let visualizerSettings;
 
+const THEME_LABELS = {
+  ambientWave: "Ambient Wave",
+  reactiveBorder: "Reactive Border",
+  flowBorder: "Flow Border"
+};
+
 function createOverlayWindow() {
-  const { bounds } = screen.getPrimaryDisplay();
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { bounds, workArea } = primaryDisplay;
+  console.log("[debug] primary display", { bounds, workArea });
 
   overlayWindow = new BrowserWindow({
     x: bounds.x,
@@ -39,7 +47,10 @@ function createOverlayWindow() {
   overlayWindow.setAlwaysOnTop(true, "screen-saver");
   overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+  overlayWindow.setBounds(bounds);
+  overlayWindow.moveTop();
   overlayWindow.loadFile("index.html");
+  console.log("[debug] overlay bounds after create", overlayWindow.getBounds());
   overlayWindow.webContents.on("did-finish-load", () => {
     setTimeout(() => {
       sendVisualizerSettings();
@@ -81,11 +92,26 @@ function sendVisualizerSettings() {
   overlayWindow.webContents.send("visualizer-settings", getRendererSettings());
 }
 
+function mergeSettingsPatch(currentSettings, patch) {
+  const mergedSettings = { ...currentSettings };
+
+  for (const [key, value] of Object.entries(patch)) {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      mergedSettings[key] = {
+        ...(currentSettings[key] || {}),
+        ...value
+      };
+      continue;
+    }
+
+    mergedSettings[key] = value;
+  }
+
+  return mergedSettings;
+}
+
 function updateSettings(nextSettings) {
-  visualizerSettings = settingsStore.save({
-    ...visualizerSettings,
-    ...nextSettings
-  });
+  visualizerSettings = settingsStore.save(mergeSettingsPatch(visualizerSettings, nextSettings));
 
   sendVisualizerSettings();
   refreshTrayMenu();
@@ -121,6 +147,7 @@ function resizeOverlayToPrimaryDisplay() {
 
   const { bounds } = screen.getPrimaryDisplay();
   overlayWindow.setBounds(bounds);
+  console.log("[debug] overlay bounds after resize", overlayWindow.getBounds());
 }
 
 function createTrayIcon() {
@@ -137,12 +164,18 @@ function createTrayIcon() {
     .resize({ width: 16, height: 16 });
 }
 
-function buildThemeMenuItems() {
-  return ["blue", "purple", "warm"].map((themeName) => ({
-    label: themeName[0].toUpperCase() + themeName.slice(1),
+function buildMainThemeMenuItems() {
+  const themeOptions = [
+    { value: "ambientWave", label: "Ambient Wave" },
+    { value: "reactiveBorder", label: "Reactive Border" },
+    { value: "flowBorder", label: "Flow Border" }
+  ];
+
+  return themeOptions.map((themeOption) => ({
+    label: themeOption.label,
     type: "radio",
-    checked: visualizerSettings.theme === themeName,
-    click: () => updateSettings({ theme: themeName })
+    checked: visualizerSettings.selectedTheme === themeOption.value,
+    click: () => updateSettings({ selectedTheme: themeOption.value })
   }));
 }
 
