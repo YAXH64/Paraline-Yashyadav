@@ -1,7 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-console.log("[debug] preload loaded");
-
 contextBridge.exposeInMainWorld("audioBridge", {
   onLevel(listener) {
     const wrapped = (_event, payload) => listener(payload);
