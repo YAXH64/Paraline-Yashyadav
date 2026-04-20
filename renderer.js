@@ -1,13 +1,34 @@
 const canvas = document.getElementById("visualizer");
 const context = canvas.getContext("2d");
 
+const {
+  TRANSPARENT_HAZE,
+  clamp01
+} = window.ParalineShared;
+
+const {
+  getAmbientTonePalette,
+  getAmbientSensitivityMultiplier,
+  drawAmbientWave
+} = window.ParalineAmbientWave;
+
+const {
+  getReactiveInputMultiplier,
+  drawReactiveBorder
+} = window.ParalineReactiveBorder;
+
+const {
+  getFlowAudioMultiplier,
+  getFlowDirectionValue,
+  getFlowSpeedProfile,
+  drawFlowBorder
+} = window.ParalineFlowBorder;
+
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 const FLOW_TARGET_FPS = 60;
 const FLOW_FRAME_INTERVAL = 1000 / FLOW_TARGET_FPS;
 const MAX_DEVICE_SCALE = 1.25;
-const RAINBOW_BORDER_INSET = 0;
-const RAINBOW_SEGMENT_LENGTH = 72;
 
 let width = 0;
 let height = 0;
@@ -48,57 +69,8 @@ let visualizerState = {
   paused: false
 };
 
-const TRANSPARENT_HAZE = {
-  hazeTop: "rgba(0, 0, 0, 0)",
-  hazeBottom: "rgba(0, 0, 0, 0)"
-};
-
-const AMBIENT_TONES = {
-  blue: {
-    topLine: "rgba(145, 220, 255, 0.34)",
-    topGlow: "rgba(120, 205, 255, 0.12)",
-    bottomLine: "rgba(168, 232, 255, 0.22)",
-    bottomGlow: "rgba(120, 205, 255, 0.08)",
-    hazeTop: "rgba(115, 200, 255, 0.10)",
-    hazeBottom: "rgba(115, 200, 255, 0.06)"
-  },
-  purple: {
-    topLine: "rgba(202, 168, 255, 0.32)",
-    topGlow: "rgba(180, 140, 255, 0.12)",
-    bottomLine: "rgba(232, 196, 255, 0.20)",
-    bottomGlow: "rgba(180, 140, 255, 0.08)",
-    hazeTop: "rgba(186, 146, 255, 0.10)",
-    hazeBottom: "rgba(186, 146, 255, 0.06)"
-  },
-  warm: {
-    topLine: "rgba(255, 208, 156, 0.32)",
-    topGlow: "rgba(255, 188, 128, 0.12)",
-    bottomLine: "rgba(255, 224, 196, 0.20)",
-    bottomGlow: "rgba(255, 188, 128, 0.08)",
-    hazeTop: "rgba(255, 190, 124, 0.10)",
-    hazeBottom: "rgba(255, 190, 124, 0.06)"
-  }
-};
-
-const REACTIVE_BORDER_STYLES = {
-  rainbow: { mode: "rainbow", saturation: 92, lightness: 64 },
-  neonBlue: { mode: "range", hueA: 192, hueB: 220, saturation: 98, lightness: 66 },
-  neonPurple: { mode: "range", hueA: 270, hueB: 304, saturation: 98, lightness: 70 },
-  warmGlow: { mode: "range", hueA: 22, hueB: 48, saturation: 96, lightness: 68 }
-};
-
-const FLOW_BORDER_STYLES = {
-  rainbow: { mode: "rainbow", saturation: 96, lightness: 64 },
-  cool: { mode: "range", hueA: 190, hueB: 228, saturation: 92, lightness: 66 },
-  warm: { mode: "range", hueA: 20, hueB: 52, saturation: 94, lightness: 68 }
-};
-
 const params = new URLSearchParams(window.location.search);
 const debugEnabled = params.get("debug") === "1";
-
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value));
-}
 
 function getAmbientWaveSettings() {
   return visualizerState.ambientWave || {};
@@ -112,146 +84,21 @@ function getFlowBorderSettings() {
   return visualizerState.flowBorder || {};
 }
 
-function getGlowMultiplier(strength) {
-  if (strength === "soft") {
-    return 0.75;
-  }
-
-  if (strength === "strong") {
-    return 1.35;
-  }
-
-  return 1;
-}
-
-function getAmbientTonePalette() {
-  const ambientSettings = getAmbientWaveSettings();
-  return AMBIENT_TONES[ambientSettings.tone] || AMBIENT_TONES.blue;
-}
-
-function getReactiveBorderStyle() {
-  const reactiveSettings = getReactiveBorderSettings();
-  return REACTIVE_BORDER_STYLES[reactiveSettings.colorStyle] || REACTIVE_BORDER_STYLES.rainbow;
-}
-
-function getFlowBorderStyle() {
-  const flowSettings = getFlowBorderSettings();
-  return FLOW_BORDER_STYLES[flowSettings.colorStyle] || FLOW_BORDER_STYLES.rainbow;
-}
-
-function getAmbientSensitivityMultiplier() {
-  const sensitivity = getAmbientWaveSettings().sensitivity;
-
-  if (sensitivity === "low") {
-    return 2;
-  }
-
-  if (sensitivity === "high") {
-    return 4.8;
-  }
-
-  return 3.2;
-}
-
-function getReactiveIntensityMultiplier() {
-  const intensity = getReactiveBorderSettings().intensity;
-
-  if (intensity === "low") {
-    return 0.82;
-  }
-
-  if (intensity === "high") {
-    return 1.26;
-  }
-
-  return 1;
-}
-
-function getReactiveInputMultiplier() {
-  const intensity = getReactiveBorderSettings().intensity;
-
-  if (intensity === "low") {
-    return 1.6;
-  }
-
-  if (intensity === "high") {
-    return 3.4;
-  }
-
-  return 2.4;
-}
-
-function getFlowAudioMultiplier() {
-  const speedMode = getFlowBorderSettings().speedMode;
-
-  if (speedMode === "calm") {
-    return 1.2;
-  }
-
-  if (speedMode === "energetic") {
-    return 1.8;
-  }
-
-  return 1.5;
-}
-
-function getFlowDirectionValue() {
-  return getFlowBorderSettings().direction === "anticlockwise" ? -1 : 1;
-}
-
-function getFlowSegmentLength() {
-  const segmentLength = getFlowBorderSettings().segmentLength;
-
-  if (segmentLength === "short") {
-    return 14;
-  }
-
-  if (segmentLength === "long") {
-    return 28;
-  }
-
-  return 18;
-}
-
-function getFlowSpeedProfile() {
-  const speedMode = getFlowBorderSettings().speedMode;
-
-  if (speedMode === "calm") {
-    return { base: 100, boost: 280 };
-  }
-
-  if (speedMode === "energetic") {
-    return { base: 220, boost: 620 };
-  }
-
-  return { base: 150, boost: 460 };
-}
-
 function getActiveAudioMultiplier() {
   if (visualizerState.selectedTheme === "reactiveBorder") {
-    return getReactiveInputMultiplier();
+    return getReactiveInputMultiplier(getReactiveBorderSettings());
   }
 
   if (visualizerState.selectedTheme === "flowBorder") {
-    return getFlowAudioMultiplier();
+    return getFlowAudioMultiplier(getFlowBorderSettings());
   }
 
-  return getAmbientSensitivityMultiplier();
-}
-
-function resolveAnimatedColor(style, normalizedDistance, animationOffset, opacity, lightnessBoost = 0) {
-  if (style.mode === "rainbow") {
-    return `hsla(${normalizedDistance * 360 + animationOffset}, ${style.saturation}%, ${style.lightness + lightnessBoost}%, ${opacity})`;
-  }
-
-  const hueBlend = Math.sin(normalizedDistance * Math.PI * 2 + animationOffset * 0.025) * 0.5 + 0.5;
-  const hue = style.hueA + (style.hueB - style.hueA) * hueBlend;
-  return `hsla(${hue}, ${style.saturation}%, ${style.lightness + lightnessBoost}%, ${opacity})`;
+  return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
 }
 
 function rebuildCachedPaint() {
   const theme = visualizerState.selectedTheme === "ambientWave"
-    ? getAmbientTonePalette()
+    ? getAmbientTonePalette(getAmbientWaveSettings())
     : TRANSPARENT_HAZE;
 
   edgeGradient = context.createLinearGradient(0, 0, 0, height);
@@ -344,201 +191,6 @@ function updateAudioLevel(now) {
   smoothedLevel += ((incomingLevel + breathing) - smoothedLevel) * response;
 }
 
-function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity, glowScale = 1) {
-  const step = 20;
-  const phaseA = time * speed;
-  const phaseB = time * speed * 0.52;
-
-  context.beginPath();
-
-  for (let x = 0; x <= width; x += step) {
-    const waveA = Math.sin(x * frequency + phaseA);
-    const waveB = Math.sin(x * frequency * 0.42 - phaseB);
-    const lift = (waveA + waveB) * amplitude;
-    const y = yBase + lift;
-
-    if (x === 0) {
-      context.moveTo(x, y);
-    } else {
-      context.lineTo(x, y);
-    }
-  }
-
-  context.strokeStyle = color;
-  context.lineWidth = lineWidth;
-  context.globalAlpha = opacity * glowScale;
-  context.shadowBlur = opacity > 0.5 ? (12 + amplitude * 0.22) * glowScale : 0;
-  context.shadowColor = color;
-  context.stroke();
-}
-
-function drawGlowBand(glowScale = 1) {
-  context.globalAlpha = glowScale;
-  context.shadowBlur = 0;
-  context.fillStyle = edgeGradient;
-  context.fillRect(0, 0, width, height);
-}
-
-function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness, alphaScale = 1) {
-  const step = 24;
-  const phaseA = time * speed;
-  const phaseB = time * speed * 0.45;
-
-  context.beginPath();
-  context.moveTo(0, yBase);
-
-  for (let x = 0; x <= width; x += step) {
-    const waveA = Math.sin(x * frequency + phaseA);
-    const waveB = Math.sin(x * frequency * 0.35 - phaseB);
-    context.lineTo(x, yBase + (waveA + waveB) * amplitude);
-  }
-
-  context.lineTo(width, yBase + thickness);
-  context.lineTo(0, yBase + thickness);
-  context.closePath();
-
-  context.globalAlpha = alphaScale;
-  context.shadowBlur = 0;
-  context.fillStyle = color;
-  context.fill();
-}
-
-function drawReactiveBorderEdge(x1, y1, x2, y2, startDistance, perimeter, colorStyle, hueOffset, thickness, glowBlur, opacity) {
-  const edgeLength = Math.hypot(x2 - x1, y2 - y1);
-  const segmentCount = Math.max(1, Math.ceil(edgeLength / RAINBOW_SEGMENT_LENGTH));
-
-  for (let index = 0; index < segmentCount; index++) {
-    const startT = index / segmentCount;
-    const endT = (index + 1) / segmentCount;
-    const sx = x1 + (x2 - x1) * startT;
-    const sy = y1 + (y2 - y1) * startT;
-    const ex = x1 + (x2 - x1) * endT;
-    const ey = y1 + (y2 - y1) * endT;
-    const normalizedDistance = (startDistance + edgeLength * ((startT + endT) * 0.5)) / perimeter;
-    const color = resolveAnimatedColor(colorStyle, normalizedDistance, hueOffset, opacity);
-
-    context.beginPath();
-    context.moveTo(sx, sy);
-    context.lineTo(ex, ey);
-    context.strokeStyle = color;
-    context.lineWidth = thickness;
-    context.shadowBlur = glowBlur;
-    context.shadowColor = color;
-    context.stroke();
-  }
-}
-
-function drawReactiveBorder() {
-  const reactiveSettings = getReactiveBorderSettings();
-  const reactiveStyle = getReactiveBorderStyle();
-  const intensityMultiplier = getReactiveIntensityMultiplier();
-  const glowMultiplier = getGlowMultiplier(reactiveSettings.glowStrength);
-  const inset = RAINBOW_BORDER_INSET;
-  const thicknessBase = reactiveSettings.borderThickness === "medium" ? 3 : 2.15;
-  const thickness = thicknessBase + smoothedLevel * 1.15 * intensityMultiplier;
-  const edgeOffset = Math.max(1, thickness * 0.5) + 1;
-  const left = inset;
-  const top = inset;
-  const right = Math.max(left + 1, width - edgeOffset);
-  const bottom = Math.max(top + 1, height - edgeOffset);
-  const horizontal = right - left;
-  const vertical = bottom - top;
-  const perimeter = horizontal * 2 + vertical * 2;
-  const speed = 32 + smoothedLevel * 180 * intensityMultiplier;
-  const hueOffset = time * speed;
-  const glowBlur = (7 + smoothedLevel * 10) * glowMultiplier;
-  const opacity = 0.54 + smoothedLevel * 0.18 * intensityMultiplier;
-
-  context.globalAlpha = 1;
-  context.lineCap = "round";
-  context.lineJoin = "round";
-  context.shadowBlur = 0;
-  context.strokeStyle = "rgba(255, 255, 255, 0.06)";
-  context.lineWidth = thickness + 0.8;
-  context.strokeRect(left, top, horizontal, vertical);
-
-  drawReactiveBorderEdge(left, top, right, top, 0, perimeter, reactiveStyle, hueOffset, thickness, glowBlur, opacity);
-  drawReactiveBorderEdge(right, top, right, bottom, horizontal, perimeter, reactiveStyle, hueOffset, thickness, glowBlur, opacity);
-  drawReactiveBorderEdge(right, bottom, left, bottom, horizontal + vertical, perimeter, reactiveStyle, hueOffset, thickness, glowBlur, opacity);
-  drawReactiveBorderEdge(left, bottom, left, top, horizontal * 2 + vertical, perimeter, reactiveStyle, hueOffset, thickness, glowBlur, opacity);
-}
-
-function computeWrappedDistance(fromDistance, toDistance, perimeter, direction) {
-  if (direction >= 0) {
-    return (toDistance - fromDistance + perimeter) % perimeter;
-  }
-
-  return (fromDistance - toDistance + perimeter) % perimeter;
-}
-
-function drawFlowBorderEdge(x1, y1, x2, y2, startDistance, perimeter, travelDistance, direction, thickness, glowBlur, segmentLength, colorStyle) {
-  const edgeLength = Math.hypot(x2 - x1, y2 - y1);
-  const segmentCount = Math.max(1, Math.ceil(edgeLength / segmentLength));
-  const leadDistance = ((travelDistance % perimeter) + perimeter) % perimeter;
-  const oppositeLeadDistance = (leadDistance + perimeter * 0.5) % perimeter;
-  const emphasisLength = perimeter * 0.3;
-
-  for (let index = 0; index < segmentCount; index++) {
-    const startT = index / segmentCount;
-    const endT = (index + 1) / segmentCount;
-    const sx = x1 + (x2 - x1) * startT;
-    const sy = y1 + (y2 - y1) * startT;
-    const ex = x1 + (x2 - x1) * endT;
-    const ey = y1 + (y2 - y1) * endT;
-    const segmentDistance = startDistance + edgeLength * ((startT + endT) * 0.5);
-    const normalizedDistance = segmentDistance / perimeter;
-    const wrappedDistanceA = computeWrappedDistance(leadDistance, segmentDistance, perimeter, direction);
-    const wrappedDistanceB = computeWrappedDistance(oppositeLeadDistance, segmentDistance, perimeter, direction);
-    const bandStrengthA = clamp01(1 - wrappedDistanceA / emphasisLength);
-    const bandStrengthB = clamp01(1 - wrappedDistanceB / emphasisLength);
-    const trailStrength = Math.max(bandStrengthA * bandStrengthA, bandStrengthB * bandStrengthB);
-    const signedTravel = (travelDistance / perimeter) * direction;
-    const shimmerPhase = normalizedDistance * Math.PI * 2 - signedTravel * 4.8;
-    const shimmer = Math.sin(shimmerPhase * 2.1 - 0.8) * 0.5 + 0.5;
-    const intensity = 0.22 + trailStrength * 0.62 + shimmer * 0.08;
-    const opacity = 0.2 + intensity * 0.5;
-    const color = resolveAnimatedColor(colorStyle, normalizedDistance, travelDistance * 0.62, opacity, intensity * 10);
-
-    context.beginPath();
-    context.moveTo(sx, sy);
-    context.lineTo(ex, ey);
-    context.strokeStyle = color;
-    context.lineWidth = thickness + trailStrength * 0.85;
-    context.shadowBlur = glowBlur * (0.3 + trailStrength * 0.95);
-    context.shadowColor = color;
-    context.stroke();
-  }
-}
-
-function drawFlowBorder() {
-  const flowSettings = getFlowBorderSettings();
-  const colorStyle = getFlowBorderStyle();
-  const glowMultiplier = getGlowMultiplier(flowSettings.glowStrength);
-  const inset = RAINBOW_BORDER_INSET;
-  const thickness = 2.2 + smoothedLevel * 1.1;
-  const edgeOffset = Math.max(1, thickness * 0.5) + 1;
-  const left = inset;
-  const top = inset;
-  const right = Math.max(left + 1, width - edgeOffset);
-  const bottom = Math.max(top + 1, height - edgeOffset);
-  const horizontal = right - left;
-  const vertical = bottom - top;
-  const perimeter = horizontal * 2 + vertical * 2;
-  const direction = getFlowDirectionValue();
-  const travelDistance = ((flowTravelDistance % perimeter) + perimeter) % perimeter;
-  const segmentLength = getFlowSegmentLength();
-  const glowBlur = (8 + smoothedLevel * 12) * glowMultiplier;
-
-  context.globalAlpha = 1;
-  context.lineCap = "round";
-  context.lineJoin = "round";
-
-  drawFlowBorderEdge(left, top, right, top, 0, perimeter, travelDistance, direction, thickness, glowBlur, segmentLength, colorStyle);
-  drawFlowBorderEdge(right, top, right, bottom, horizontal, perimeter, travelDistance, direction, thickness, glowBlur, segmentLength, colorStyle);
-  drawFlowBorderEdge(right, bottom, left, bottom, horizontal + vertical, perimeter, travelDistance, direction, thickness, glowBlur, segmentLength, colorStyle);
-  drawFlowBorderEdge(left, bottom, left, top, horizontal * 2 + vertical, perimeter, travelDistance, direction, thickness, glowBlur, segmentLength, colorStyle);
-}
-
 function renderFrame(now) {
   requestAnimationFrame(renderFrame);
 
@@ -555,47 +207,45 @@ function renderFrame(now) {
 
   if (!visualizerState.paused) {
     time += deltaMs * 0.001;
-    const flowSpeedProfile = getFlowSpeedProfile();
+
+    const flowSpeedProfile = getFlowSpeedProfile(getFlowBorderSettings());
     const flowSpeed = flowSpeedProfile.base + smoothedLevel * flowSpeedProfile.boost;
-    flowTravelDistance += deltaMs * 0.001 * flowSpeed * getFlowDirectionValue();
+    flowTravelDistance += deltaMs * 0.001 * flowSpeed * getFlowDirectionValue(getFlowBorderSettings());
   }
 
   updateAudioLevel(now);
 
   context.clearRect(0, 0, width, height);
 
-  const ambientTheme = getAmbientTonePalette();
-  const isReactiveBorderTheme = visualizerState.selectedTheme === "reactiveBorder";
-  const isFlowTheme = visualizerState.selectedTheme === "flowBorder";
-  const helperDriven = latestSource === "helper";
-  if (isReactiveBorderTheme) {
-    drawReactiveBorder();
-  } else if (isFlowTheme) {
-    drawFlowBorder();
+  if (visualizerState.selectedTheme === "reactiveBorder") {
+    drawReactiveBorder({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getReactiveBorderSettings()
+    });
+  } else if (visualizerState.selectedTheme === "flowBorder") {
+    drawFlowBorder({
+      context,
+      width,
+      height,
+      smoothedLevel,
+      flowTravelDistance,
+      settings: getFlowBorderSettings()
+    });
   } else {
-    const ambientSettings = getAmbientWaveSettings();
-    const glowScale = getGlowMultiplier(ambientSettings.glowStrength);
-
-    drawGlowBand(glowScale);
-
-    const drawTop = ambientSettings.edgeMode === "top" || ambientSettings.edgeMode === "both";
-    const drawBottom = ambientSettings.edgeMode === "bottom" || ambientSettings.edgeMode === "both";
-    const topBase = 66 + smoothedLevel * 10;
-    const bottomBase = height - 62 - smoothedLevel * 18;
-    const primaryAmplitude = helperDriven ? 8 + smoothedLevel * 38 : 5 + smoothedLevel * 12;
-    const secondaryAmplitude = helperDriven ? 3 + smoothedLevel * 16 : 2 + smoothedLevel * 6;
-
-    if (drawTop) {
-      drawSoftFill(topBase, primaryAmplitude * 0.6, 0.0064, 0.28, ambientTheme.topGlow, 28, glowScale);
-      drawWave(topBase, primaryAmplitude * 0.6, 0.0088, 0.26, ambientTheme.topLine, 1.05, 0.56, glowScale);
-      drawWave(topBase + 6, secondaryAmplitude * 0.55, 0.0112, 0.34, ambientTheme.topGlow, 0.8, 0.18, glowScale);
-    }
-
-    if (drawBottom) {
-      drawSoftFill(bottomBase, primaryAmplitude * 0.9, 0.007, 0.32, ambientTheme.bottomGlow, 40, glowScale);
-      drawWave(bottomBase, primaryAmplitude * 0.9, 0.0102, 0.34, ambientTheme.bottomLine, 1.25, 0.68, glowScale);
-      drawWave(bottomBase - 8, secondaryAmplitude, 0.013, 0.48, ambientTheme.bottomGlow, 0.9, 0.28, glowScale);
-    }
+    drawAmbientWave({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      latestSource,
+      edgeGradient,
+      settings: getAmbientWaveSettings()
+    });
   }
 
   context.globalAlpha = 1;
@@ -649,7 +299,7 @@ function applySettings(nextSettings) {
     visualizerState.reactiveBorder.intensity = "medium";
   }
 
-  if (!["thin", "medium"].includes(visualizerState.reactiveBorder.borderThickness)) {
+  if (!["thin", "medium", "thick"].includes(visualizerState.reactiveBorder.borderThickness)) {
     visualizerState.reactiveBorder.borderThickness = "thin";
   }
 
