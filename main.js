@@ -19,8 +19,7 @@ const THEME_LABELS = {
 
 function createOverlayWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { bounds, workArea } = primaryDisplay;
-  console.log("[debug] primary display", { bounds, workArea });
+  const { bounds } = primaryDisplay;
 
   overlayWindow = new BrowserWindow({
     x: bounds.x,
@@ -50,7 +49,6 @@ function createOverlayWindow() {
   overlayWindow.setBounds(bounds);
   overlayWindow.moveTop();
   overlayWindow.loadFile("index.html");
-  console.log("[debug] overlay bounds after create", overlayWindow.getBounds());
   overlayWindow.webContents.on("did-finish-load", () => {
     setTimeout(() => {
       sendVisualizerSettings();
@@ -147,7 +145,6 @@ function resizeOverlayToPrimaryDisplay() {
 
   const { bounds } = screen.getPrimaryDisplay();
   overlayWindow.setBounds(bounds);
-  console.log("[debug] overlay bounds after resize", overlayWindow.getBounds());
 }
 
 function createTrayIcon() {
@@ -401,10 +398,8 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
-  console.log("[debug] app.whenReady");
   settingsStore = createSettingsStore(app.getPath("userData"));
   visualizerSettings = settingsStore.save(settingsStore.load());
-  console.log("[debug] loaded settings", visualizerSettings);
 
   ipcMain.handle("audio-bridge-status", () => {
     if (!audioBridge) {
@@ -431,7 +426,6 @@ app.whenReady().then(() => {
     sendAudioLevel(value, "helper");
   });
   audioBridge.start();
-  startSimulatedAudioFallback();
 
   screen.on("display-metrics-changed", resizeOverlayToPrimaryDisplay);
   screen.on("display-added", resizeOverlayToPrimaryDisplay);
@@ -441,24 +435,6 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createOverlayWindow();
     }
-  });
-});
-
-app.on("web-contents-created", (_event, contents) => {
-  contents.on("did-finish-load", () => {
-    console.log("[debug] webContents did-finish-load");
-  });
-
-  contents.on("did-fail-load", (_loadEvent, errorCode, errorDescription) => {
-    console.log("[debug] webContents did-fail-load", errorCode, errorDescription);
-  });
-
-  contents.on("render-process-gone", (_goneEvent, details) => {
-    console.log("[debug] render-process-gone", details);
-  });
-
-  contents.on("console-message", (_consoleEvent, level, message, line, sourceId) => {
-    console.log("[renderer]", { level, message, line, sourceId });
   });
 });
 
