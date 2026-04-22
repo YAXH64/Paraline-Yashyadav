@@ -123,6 +123,14 @@ function togglePaused() {
   refreshTrayMenu();
 }
 
+function reloadVisualizer() {
+  if (!overlayWindow || overlayWindow.isDestroyed()) {
+    return;
+  }
+
+  overlayWindow.webContents.reloadIgnoringCache();
+}
+
 function startSimulatedAudioFallback() {
   stopSimulatedAudioFallback();
 
@@ -529,6 +537,10 @@ function refreshTrayMenu() {
     {
       label: isPaused ? "Resume Visualizer" : "Pause Visualizer",
       click: () => togglePaused()
+    },
+    {
+      label: "Reload Visualizer",
+      click: () => reloadVisualizer()
     },
     {
       label: "Visualizer Mode",
