@@ -15,7 +15,8 @@ const THEME_LABELS = {
   ambientWave: "Ambient Wave",
   reactiveBorder: "Reactive Border",
   flowBorder: "Flow Border",
-  sideBars: "Side Bars"
+  sideBars: "Side Bars",
+  flatRipples: "Pulse Lines"
 };
 
 function createOverlayWindow() {
@@ -190,7 +191,8 @@ function buildMainThemeMenuItems() {
     { value: "ambientWave", label: "Ambient Wave" },
     { value: "reactiveBorder", label: "Reactive Border" },
     { value: "flowBorder", label: "Flow Border" },
-    { value: "sideBars", label: "Side Bars" }
+    { value: "sideBars", label: "Side Bars" },
+    { value: "flatRipples", label: "Pulse Lines" }
   ];
 
   return themeOptions.map((themeOption) => ({
@@ -439,6 +441,65 @@ function buildSideBarsMenuItems() {
   ];
 }
 
+function buildFlatRipplesMenuItems() {
+  const rippleSettings = visualizerSettings.flatRipples;
+
+  return [
+    {
+      label: "Pulse Lines Settings",
+      enabled: false
+    },
+    {
+      label: "Mode",
+      submenu: [
+        { label: "Side Ripples", value: "sideRipples" },
+        { label: "Flat Ripples", value: "flatRipples" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: rippleSettings.mode === option.value,
+        click: () => updateSettings({ flatRipples: { mode: option.value } })
+      }))
+    },
+    {
+      label: "Intensity",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: rippleSettings.intensity === level,
+        click: () => updateSettings({ flatRipples: { intensity: level } })
+      }))
+    },
+    {
+      label: "Speed",
+      submenu: [
+        { label: "Calm", value: "calm" },
+        { label: "Balanced", value: "balanced" },
+        { label: "Energetic", value: "energetic" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: rippleSettings.speed === option.value,
+        click: () => updateSettings({ flatRipples: { speed: option.value } })
+      }))
+    },
+    {
+      label: "Color",
+      submenu: [
+        { label: "Red", value: "red" },
+        { label: "Blue", value: "blue" },
+        { label: "White", value: "white" },
+        { label: "Multicolor", value: "multicolor" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: rippleSettings.colorStyle === option.value,
+        click: () => updateSettings({ flatRipples: { colorStyle: option.value } })
+      }))
+    }
+  ];
+}
+
 function buildActiveThemeMenuItems() {
   if (visualizerSettings.selectedTheme === "reactiveBorder") {
     return buildReactiveBorderMenuItems();
@@ -450,6 +511,10 @@ function buildActiveThemeMenuItems() {
 
   if (visualizerSettings.selectedTheme === "sideBars") {
     return buildSideBarsMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "flatRipples") {
+    return buildFlatRipplesMenuItems();
   }
 
   return buildAmbientWaveMenuItems();
