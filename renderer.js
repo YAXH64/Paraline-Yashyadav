@@ -34,10 +34,24 @@ const {
   drawFlatRipples
 } = window.ParalineFlatRipples;
 
+const {
+  getDotParticlesAudioMultiplier,
+  drawDotParticles
+} = window.ParalineDotParticles;
+
+const {
+  getRippleFlowAudioMultiplier,
+  drawRippleFlow
+} = window.ParalineRippleFlow;
+
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 const FLOW_TARGET_FPS = 60;
 const FLOW_FRAME_INTERVAL = 1000 / FLOW_TARGET_FPS;
+const PARTICLE_TARGET_FPS = 48;
+const PARTICLE_FRAME_INTERVAL = 1000 / PARTICLE_TARGET_FPS;
+const RIPPLE_FLOW_TARGET_FPS = 48;
+const RIPPLE_FLOW_FRAME_INTERVAL = 1000 / RIPPLE_FLOW_TARGET_FPS;
 const MAX_DEVICE_SCALE = 1.25;
 
 let width = 0;
@@ -88,6 +102,18 @@ let visualizerState = {
     colorStyle: "blue",
     speed: "calm"
   },
+  dotParticles: {
+    density: "medium",
+    motionStyle: "balanced",
+    directionBehavior: "beatReactive",
+    glowStrength: "medium"
+  },
+  rippleFlow: {
+    mode: "sideRipples",
+    intensity: "medium",
+    sensitivity: "medium",
+    colorStyle: "blue"
+  },
   paused: false
 };
 
@@ -114,6 +140,14 @@ function getFlatRipplesSettings() {
   return visualizerState.flatRipples || {};
 }
 
+function getDotParticlesSettings() {
+  return visualizerState.dotParticles || {};
+}
+
+function getRippleFlowSettings() {
+  return visualizerState.rippleFlow || {};
+}
+
 function getActiveAudioMultiplier() {
   if (visualizerState.selectedTheme === "reactiveBorder") {
     return getReactiveInputMultiplier(getReactiveBorderSettings());
@@ -129,6 +163,14 @@ function getActiveAudioMultiplier() {
 
   if (visualizerState.selectedTheme === "flatRipples") {
     return getFlatRipplesAudioMultiplier(getFlatRipplesSettings());
+  }
+
+  if (visualizerState.selectedTheme === "dotParticles") {
+    return getDotParticlesAudioMultiplier(getDotParticlesSettings());
+  }
+
+  if (visualizerState.selectedTheme === "rippleFlow") {
+    return getRippleFlowAudioMultiplier(getRippleFlowSettings());
   }
 
   return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
@@ -232,9 +274,15 @@ function updateAudioLevel(now) {
 function renderFrame(now) {
   requestAnimationFrame(renderFrame);
 
-  const activeFrameInterval = visualizerState.selectedTheme === "flowBorder"
-    ? FLOW_FRAME_INTERVAL
-    : FRAME_INTERVAL;
+  let activeFrameInterval = FRAME_INTERVAL;
+
+  if (visualizerState.selectedTheme === "flowBorder") {
+    activeFrameInterval = FLOW_FRAME_INTERVAL;
+  } else if (visualizerState.selectedTheme === "dotParticles") {
+    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+  } else if (visualizerState.selectedTheme === "rippleFlow") {
+    activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+  }
 
   if (lastFrameAt && now - lastFrameAt < activeFrameInterval) {
     return;
@@ -291,6 +339,24 @@ function renderFrame(now) {
       smoothedLevel,
       settings: getFlatRipplesSettings()
     });
+  } else if (visualizerState.selectedTheme === "dotParticles") {
+    drawDotParticles({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getDotParticlesSettings()
+    });
+  } else if (visualizerState.selectedTheme === "rippleFlow") {
+    drawRippleFlow({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getRippleFlowSettings()
+    });
   } else {
     drawAmbientWave({
       context,
@@ -332,10 +398,18 @@ function applySettings(nextSettings) {
     flatRipples: {
       ...visualizerState.flatRipples,
       ...(nextSettings?.flatRipples || {})
+    },
+    dotParticles: {
+      ...visualizerState.dotParticles,
+      ...(nextSettings?.dotParticles || {})
+    },
+    rippleFlow: {
+      ...visualizerState.rippleFlow,
+      ...(nextSettings?.rippleFlow || {})
     }
   };
 
-  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples"].includes(visualizerState.selectedTheme)) {
+  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow"].includes(visualizerState.selectedTheme)) {
     visualizerState.selectedTheme = "ambientWave";
   }
 
@@ -421,6 +495,38 @@ function applySettings(nextSettings) {
 
   if (!["calm", "balanced", "energetic"].includes(visualizerState.flatRipples.speed)) {
     visualizerState.flatRipples.speed = "calm";
+  }
+
+  if (!["low", "medium", "high"].includes(visualizerState.dotParticles.density)) {
+    visualizerState.dotParticles.density = "medium";
+  }
+
+  if (!["calm", "balanced", "energetic"].includes(visualizerState.dotParticles.motionStyle)) {
+    visualizerState.dotParticles.motionStyle = "balanced";
+  }
+
+  if (!["mostlyClockwise", "mostlyAnticlockwise", "beatReactive"].includes(visualizerState.dotParticles.directionBehavior)) {
+    visualizerState.dotParticles.directionBehavior = "beatReactive";
+  }
+
+  if (!["soft", "medium", "strong"].includes(visualizerState.dotParticles.glowStrength)) {
+    visualizerState.dotParticles.glowStrength = "medium";
+  }
+
+  if (!["sideRipples", "flatRipples"].includes(visualizerState.rippleFlow.mode)) {
+    visualizerState.rippleFlow.mode = "sideRipples";
+  }
+
+  if (!["low", "medium", "high"].includes(visualizerState.rippleFlow.intensity)) {
+    visualizerState.rippleFlow.intensity = "medium";
+  }
+
+  if (!["low", "medium", "high"].includes(visualizerState.rippleFlow.sensitivity)) {
+    visualizerState.rippleFlow.sensitivity = "medium";
+  }
+
+  if (!["red", "blue", "white"].includes(visualizerState.rippleFlow.colorStyle)) {
+    visualizerState.rippleFlow.colorStyle = "blue";
   }
 
   rebuildCachedPaint();

@@ -16,7 +16,9 @@ const THEME_LABELS = {
   reactiveBorder: "Reactive Border",
   flowBorder: "Flow Border",
   sideBars: "Side Bars",
-  flatRipples: "Pulse Lines"
+  flatRipples: "Pulse Lines",
+  dotParticles: "Dot Particles",
+  rippleFlow: "Ripple Flow"
 };
 
 function createOverlayWindow() {
@@ -200,7 +202,9 @@ function buildMainThemeMenuItems() {
     { value: "reactiveBorder", label: "Reactive Border" },
     { value: "flowBorder", label: "Flow Border" },
     { value: "sideBars", label: "Side Bars" },
-    { value: "flatRipples", label: "Pulse Lines" }
+    { value: "flatRipples", label: "Pulse Lines" },
+    { value: "dotParticles", label: "Dot Particles" },
+    { value: "rippleFlow", label: "Ripple Flow" }
   ];
 
   return themeOptions.map((themeOption) => ({
@@ -508,6 +512,115 @@ function buildFlatRipplesMenuItems() {
   ];
 }
 
+function buildDotParticlesMenuItems() {
+  const dotSettings = visualizerSettings.dotParticles;
+
+  return [
+    {
+      label: "Dot Particles Settings",
+      enabled: false
+    },
+    {
+      label: "Density",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: dotSettings.density === level,
+        click: () => updateSettings({ dotParticles: { density: level } })
+      }))
+    },
+    {
+      label: "Motion Style",
+      submenu: [
+        { label: "Calm", value: "calm" },
+        { label: "Balanced", value: "balanced" },
+        { label: "Energetic", value: "energetic" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: dotSettings.motionStyle === option.value,
+        click: () => updateSettings({ dotParticles: { motionStyle: option.value } })
+      }))
+    },
+    {
+      label: "Direction Behavior",
+      submenu: [
+        { label: "Mostly Clockwise", value: "mostlyClockwise" },
+        { label: "Mostly Anticlockwise", value: "mostlyAnticlockwise" },
+        { label: "Beat Reactive", value: "beatReactive" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: dotSettings.directionBehavior === option.value,
+        click: () => updateSettings({ dotParticles: { directionBehavior: option.value } })
+      }))
+    },
+    {
+      label: "Glow Strength",
+      submenu: ["soft", "medium", "strong"].map((strength) => ({
+        label: strength[0].toUpperCase() + strength.slice(1),
+        type: "radio",
+        checked: dotSettings.glowStrength === strength,
+        click: () => updateSettings({ dotParticles: { glowStrength: strength } })
+      }))
+    }
+  ];
+}
+
+function buildRippleFlowMenuItems() {
+  const rippleSettings = visualizerSettings.rippleFlow;
+
+  return [
+    {
+      label: "Ripple Flow Settings",
+      enabled: false
+    },
+    {
+      label: "Mode",
+      submenu: [
+        { label: "Side Ripples", value: "sideRipples" },
+        { label: "Flat Ripples", value: "flatRipples" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: rippleSettings.mode === option.value,
+        click: () => updateSettings({ rippleFlow: { mode: option.value } })
+      }))
+    },
+    {
+      label: "Intensity",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: rippleSettings.intensity === level,
+        click: () => updateSettings({ rippleFlow: { intensity: level } })
+      }))
+    },
+    {
+      label: "Sensitivity",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: rippleSettings.sensitivity === level,
+        click: () => updateSettings({ rippleFlow: { sensitivity: level } })
+      }))
+    },
+    {
+      label: "Color",
+      submenu: [
+        { label: "Red", value: "red" },
+        { label: "Blue", value: "blue" },
+        { label: "White", value: "white" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: rippleSettings.colorStyle === option.value,
+        click: () => updateSettings({ rippleFlow: { colorStyle: option.value } })
+      }))
+    }
+  ];
+}
+
 function buildActiveThemeMenuItems() {
   if (visualizerSettings.selectedTheme === "reactiveBorder") {
     return buildReactiveBorderMenuItems();
@@ -523,6 +636,14 @@ function buildActiveThemeMenuItems() {
 
   if (visualizerSettings.selectedTheme === "flatRipples") {
     return buildFlatRipplesMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "dotParticles") {
+    return buildDotParticlesMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "rippleFlow") {
+    return buildRippleFlowMenuItems();
   }
 
   return buildAmbientWaveMenuItems();
