@@ -26,14 +26,68 @@ It transforms system audio into ambient waves, reactive borders, and flowing lig
 
 <div align="center">
 
+<table>
+<tr>
+<td align="center" width="33%">
+
 ### Ambient Wave
 ![Ambient Wave Preview](./previews/ambient-wave-preview.gif)
+
+</td>
+<td align="center" width="33%">
 
 ### Reactive Border
 ![Reactive Border Preview](./previews/reactive-border-preview.gif)
 
+</td>
+<td align="center" width="33%">
+
 ### Flow Border
 ![Flow Border Preview](./previews/flow-border-preview.gif)
+
+</td>
+</tr>
+<tr>
+<td align="center" width="33%">
+
+### Side Bars
+![Side Bars Preview](./previews/side-bars-preview.gif)
+
+</td>
+<td align="center" width="33%">
+
+### Pulse Lines
+![Pulse Lines Preview](./previews/pulse-lines-preview.gif)
+
+</td>
+<td align="center" width="33%">
+
+### Dot Particles
+![Dot Particles Preview](./previews/dot-particles-preview.gif)
+
+</td>
+</tr>
+<tr>
+<td align="center" width="33%">
+
+### Ripple Flow
+![Ripple Flow Preview](./previews/ripple-flow-preview.gif)
+
+</td>
+<td align="center" width="33%">
+
+### More Themes
+Add future previews here
+
+</td>
+<td align="center" width="33%">
+
+### More Themes
+Add future previews here
+
+</td>
+</tr>
+</table>
 
 </div>
 
@@ -116,54 +170,48 @@ Paraline is designed to stay running in the background without feeling heavy or 
 
 ## ✦ Themes
 
-## 01 — Ambient Wave
-
-A calm, elegant wave system designed to feel like motion at the edges of the desktop rather than a full visual performance.
-
-**Best for**
-- studying
-- coding
-- late-night sessions
-- minimal setups
-
-**Options**
-- **Tones:** Blue / Purple / Warm
-- **Placement:** Top / Bottom / Both
-- **Mood:** soft, subtle, atmospheric
-
----
-
-## 02 — Reactive Border
-
-A full-border edge-lighting mode that responds directly to the energy of your music.<br>
-Instead of feeling like a moving stream, this mode feels like the perimeter of the display is **charging up with sound**.
-
-**Best for**
-- stronger visual presence
-- brighter setups
-- high-energy tracks
-
-**Options**
-- border-based reactivity
-- glow-heavy feel
-- sharper visual response
-
----
-
-## 03 — Flow Border
-
-A directional light-runner that moves around the screen perimeter as a continuous stream.<br>
-This mode is built to feel like light is **traveling along the frame of the display**, with audio affecting the motion speed.
-
-**Best for**
-- dynamic setups
-- movement-driven visuals
-- cinematic desktop feel
-
-**Options**
-- clockwise / anticlockwise direction
-- speed tied to audio energy
-- smooth perimeter motion
+<table>
+<tr>
+<th align="left">Theme</th>
+<th align="left">Style</th>
+<th align="left">Controls</th>
+</tr>
+<tr>
+<td><strong>Ambient Wave</strong></td>
+<td>Soft ambient edge waves for minimal desktop motion.</td>
+<td>Tone, edge mode, sensitivity, glow strength</td>
+</tr>
+<tr>
+<td><strong>Reactive Border</strong></td>
+<td>Full-border audio-reactive glow with stronger presence.</td>
+<td>Color style, intensity, border thickness, glow strength</td>
+</tr>
+<tr>
+<td><strong>Flow Border</strong></td>
+<td>Directional light motion traveling around the screen perimeter.</td>
+<td>Direction, speed mode, segment length, glow strength, color style</td>
+</tr>
+<tr>
+<td><strong>Side Bars</strong></td>
+<td>Left-right edge bars with centered musical emphasis.</td>
+<td>Color style, bar thickness, sensitivity, bar count</td>
+</tr>
+<tr>
+<td><strong>Pulse Lines</strong></td>
+<td>Center-origin pulse motion locked to the screen edges.</td>
+<td>Mode, intensity, speed, color</td>
+</tr>
+<tr>
+<td><strong>Dot Particles</strong></td>
+<td>Full-border dot motion with beat-reactive energy and direction changes.</td>
+<td>Density, motion style, direction behavior, glow strength</td>
+</tr>
+<tr>
+<td><strong>Ripple Flow</strong></td>
+<td>Symmetric edge wavefronts expanding outward from a center origin.</td>
+<td>Mode, intensity, sensitivity, color</td>
+</tr>
+</table>
 
 ---
 
