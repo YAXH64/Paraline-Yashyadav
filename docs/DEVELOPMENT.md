@@ -130,8 +130,8 @@ Renderer / Canvas Visualizer
 - `themes/snowBubbleParticles.js`
   Snow Particles rendering with centered or full-width top-origin snowfall.
 
-- `themes/edgeFlutter.js`
-  Edge Flutter rendering with left/right edge-locked vibrating energy strokes.
+- `themes/edgeCrystals.js`
+  Edge Crystals rendering with left/right edge-locked vibrating energy strokes.
 
 - `preload.js`
   Safe Electron-to-renderer bridge.
@@ -204,7 +204,7 @@ The app uses one root selected theme plus nested settings per theme:
     "glowStrength": "medium",
     "particleSize": "medium"
   },
-  "edgeFlutter": {
+  "edgeCrystals": {
     "flutterStyle": "balanced",
     "density": "medium",
     "glowStrength": "medium",
@@ -239,7 +239,7 @@ Paraline/
 │   ├── dotParticles.js
 │   ├── rippleFlow.js
 │   ├── snowBubbleParticles.js
-│   └── edgeFlutter.js
+│   └── edgeCrystals.js
 ├── package.json
 ├── README.md
 ├── docs/
