@@ -49,6 +49,11 @@ const {
   drawSnowBubbleParticles
 } = window.ParalineSnowBubbleParticles;
 
+const {
+  getEdgeCrystalsAudioMultiplier,
+  drawEdgeCrystals
+} = window.ParalineEdgeCrystals;
+
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 const FLOW_TARGET_FPS = 60;
@@ -126,6 +131,13 @@ let visualizerState = {
     glowStrength: "medium",
     particleSize: "medium"
   },
+  edgeCrystals: {
+    flutterStyle: "balanced",
+    density: "medium",
+    glowStrength: "medium",
+    colorStyle: "blue",
+    edgeMode: "both"
+  },
   paused: false
 };
 
@@ -164,6 +176,10 @@ function getSnowBubbleParticlesSettings() {
   return visualizerState.snowBubbleParticles || {};
 }
 
+function getEdgeCrystalsSettings() {
+  return visualizerState.edgeCrystals || {};
+}
+
 function getActiveAudioMultiplier() {
   if (visualizerState.selectedTheme === "reactiveBorder") {
     return getReactiveInputMultiplier(getReactiveBorderSettings());
@@ -191,6 +207,10 @@ function getActiveAudioMultiplier() {
 
   if (visualizerState.selectedTheme === "snowBubbleParticles") {
     return getSnowBubbleAudioMultiplier(getSnowBubbleParticlesSettings());
+  }
+
+  if (visualizerState.selectedTheme === "edgeCrystals") {
+    return getEdgeCrystalsAudioMultiplier(getEdgeCrystalsSettings());
   }
 
   return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
@@ -304,6 +324,8 @@ function renderFrame(now) {
     activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
   } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
     activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+  } else if (visualizerState.selectedTheme === "edgeCrystals") {
+    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
   }
 
   if (lastFrameAt && now - lastFrameAt < activeFrameInterval) {
@@ -388,6 +410,15 @@ function renderFrame(now) {
       smoothedLevel,
       settings: getSnowBubbleParticlesSettings()
     });
+  } else if (visualizerState.selectedTheme === "edgeCrystals") {
+    drawEdgeCrystals({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getEdgeCrystalsSettings()
+    });
   } else {
     drawAmbientWave({
       context,
@@ -441,10 +472,14 @@ function applySettings(nextSettings) {
     snowBubbleParticles: {
       ...visualizerState.snowBubbleParticles,
       ...(nextSettings?.snowBubbleParticles || {})
+    },
+    edgeCrystals: {
+      ...visualizerState.edgeCrystals,
+      ...(nextSettings?.edgeCrystals || {})
     }
   };
 
-  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles"].includes(visualizerState.selectedTheme)) {
+  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals"].includes(visualizerState.selectedTheme)) {
     visualizerState.selectedTheme = "ambientWave";
   }
 
@@ -582,6 +617,26 @@ function applySettings(nextSettings) {
 
   if (!["small", "medium", "large"].includes(visualizerState.snowBubbleParticles.particleSize)) {
     visualizerState.snowBubbleParticles.particleSize = "medium";
+  }
+
+  if (!["soft", "balanced", "energetic"].includes(visualizerState.edgeCrystals.flutterStyle)) {
+    visualizerState.edgeCrystals.flutterStyle = "balanced";
+  }
+
+  if (!["low", "medium", "high"].includes(visualizerState.edgeCrystals.density)) {
+    visualizerState.edgeCrystals.density = "medium";
+  }
+
+  if (!["soft", "medium", "strong"].includes(visualizerState.edgeCrystals.glowStrength)) {
+    visualizerState.edgeCrystals.glowStrength = "medium";
+  }
+
+  if (!["blue", "purple", "red", "white"].includes(visualizerState.edgeCrystals.colorStyle)) {
+    visualizerState.edgeCrystals.colorStyle = "blue";
+  }
+
+  if (!["left", "right", "both"].includes(visualizerState.edgeCrystals.edgeMode)) {
+    visualizerState.edgeCrystals.edgeMode = "both";
   }
 
   rebuildCachedPaint();
