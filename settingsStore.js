@@ -52,10 +52,17 @@ const DEFAULT_SETTINGS = Object.freeze({
     motionStyle: "balanced",
     glowStrength: "medium",
     particleSize: "medium"
+  }),
+  edgeCrystals: Object.freeze({
+    flutterStyle: "balanced",
+    density: "medium",
+    glowStrength: "medium",
+    colorStyle: "blue",
+    edgeMode: "both"
   })
 });
 
-const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles"]);
+const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals"]);
 const VALID_AMBIENT_TONES = new Set(["blue", "purple", "warm"]);
 const VALID_LEVELS = new Set(["low", "medium", "high"]);
 const VALID_EDGE_MODES = new Set(["top", "bottom", "both"]);
@@ -78,6 +85,9 @@ const VALID_RIPPLE_FLOW_MODES = new Set(["sideRipples", "flatRipples"]);
 const VALID_RIPPLE_FLOW_COLORS = new Set(["red", "blue", "white"]);
 const VALID_SNOW_FALL_AREAS = new Set(["middle", "fullWidth"]);
 const VALID_PARTICLE_SIZES = new Set(["small", "medium", "large"]);
+const VALID_EDGE_FLUTTER_STYLES = new Set(["soft", "balanced", "energetic"]);
+const VALID_EDGE_FLUTTER_COLORS = new Set(["blue", "purple", "red", "white"]);
+const VALID_EDGE_FLUTTER_MODES = new Set(["left", "right", "both"]);
 
 function createDefaultSettings() {
   return {
@@ -89,7 +99,8 @@ function createDefaultSettings() {
     flatRipples: { ...DEFAULT_SETTINGS.flatRipples },
     dotParticles: { ...DEFAULT_SETTINGS.dotParticles },
     rippleFlow: { ...DEFAULT_SETTINGS.rippleFlow },
-    snowBubbleParticles: { ...DEFAULT_SETTINGS.snowBubbleParticles }
+    snowBubbleParticles: { ...DEFAULT_SETTINGS.snowBubbleParticles },
+    edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals }
   };
 }
 
@@ -187,19 +198,43 @@ function sanitizeSnowBubbleParticles(input = {}) {
   };
 }
 
+function sanitizeEdgeCrystals(input = {}) {
+  return {
+    flutterStyle: pick(input.flutterStyle, VALID_EDGE_FLUTTER_STYLES, DEFAULT_SETTINGS.edgeCrystals.flutterStyle),
+    density: pick(input.density, VALID_LEVELS, DEFAULT_SETTINGS.edgeCrystals.density),
+    glowStrength: pick(input.glowStrength, VALID_GLOW_STRENGTHS, DEFAULT_SETTINGS.edgeCrystals.glowStrength),
+    colorStyle: pick(input.colorStyle, VALID_EDGE_FLUTTER_COLORS, DEFAULT_SETTINGS.edgeCrystals.colorStyle),
+    edgeMode: pick(input.edgeMode, VALID_EDGE_FLUTTER_MODES, DEFAULT_SETTINGS.edgeCrystals.edgeMode)
+  };
+}
+
 function migrateLegacySettings(input = {}) {
-  if (VALID_MAIN_THEMES.has(input.selectedTheme)) {
+  if (VALID_MAIN_THEMES.has(input.selectedTheme) && !input.edgeFlutter) {
     return input;
   }
 
+  const normalizedInput = { ...input };
+
+  if (normalizedInput.selectedTheme === "edgeFlutter") {
+    normalizedInput.selectedTheme = "edgeCrystals";
+  }
+
+  if (normalizedInput.edgeFlutter && !normalizedInput.edgeCrystals) {
+    normalizedInput.edgeCrystals = normalizedInput.edgeFlutter;
+  }
+
+  if (VALID_MAIN_THEMES.has(normalizedInput.selectedTheme)) {
+    return normalizedInput;
+  }
+
   const migrated = createDefaultSettings();
-  const legacyTheme = input.theme;
-  const legacyLevel = legacySensitivityToLevel(input.sensitivity);
+  const legacyTheme = normalizedInput.theme;
+  const legacyLevel = legacySensitivityToLevel(normalizedInput.sensitivity);
 
   migrated.ambientWave.sensitivity = legacyLevel;
 
-  if (VALID_EDGE_MODES.has(input.edgeMode)) {
-    migrated.ambientWave.edgeMode = input.edgeMode;
+  if (VALID_EDGE_MODES.has(normalizedInput.edgeMode)) {
+    migrated.ambientWave.edgeMode = normalizedInput.edgeMode;
   }
 
   if (legacyTheme === "purple" || legacyTheme === "warm") {
@@ -233,7 +268,8 @@ function sanitizeSettings(input = {}) {
     flatRipples: sanitizeFlatRipples(source.flatRipples),
     dotParticles: sanitizeDotParticles(source.dotParticles),
     rippleFlow: sanitizeRippleFlow(source.rippleFlow),
-    snowBubbleParticles: sanitizeSnowBubbleParticles(source.snowBubbleParticles)
+    snowBubbleParticles: sanitizeSnowBubbleParticles(source.snowBubbleParticles),
+    edgeCrystals: sanitizeEdgeCrystals(source.edgeCrystals)
   };
 }
 
