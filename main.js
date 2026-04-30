@@ -19,7 +19,8 @@ const THEME_LABELS = {
   flatRipples: "Pulse Lines",
   dotParticles: "Dot Particles",
   rippleFlow: "Ripple Flow",
-  snowBubbleParticles: "Snow Particles"
+  snowBubbleParticles: "Snow Particles",
+  edgeCrystals: "Edge Crystals"
 };
 
 function createOverlayWindow() {
@@ -206,7 +207,8 @@ function buildMainThemeMenuItems() {
     { value: "flatRipples", label: "Pulse Lines" },
     { value: "dotParticles", label: "Dot Particles" },
     { value: "rippleFlow", label: "Ripple Flow" },
-    { value: "snowBubbleParticles", label: "Snow Particles" }
+    { value: "snowBubbleParticles", label: "Snow Particles" },
+    { value: "edgeCrystals", label: "Edge Crystals" }
   ];
 
   return themeOptions.map((themeOption) => ({
@@ -690,6 +692,75 @@ function buildSnowBubbleParticlesMenuItems() {
   ];
 }
 
+function buildEdgeCrystalsMenuItems() {
+  const flutterSettings = visualizerSettings.edgeCrystals;
+
+  return [
+    {
+      label: "Edge Crystals Settings",
+      enabled: false
+    },
+    {
+      label: "Flutter Style",
+      submenu: [
+        { label: "Soft", value: "soft" },
+        { label: "Balanced", value: "balanced" },
+        { label: "Energetic", value: "energetic" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flutterSettings.flutterStyle === option.value,
+        click: () => updateSettings({ edgeCrystals: { flutterStyle: option.value } })
+      }))
+    },
+    {
+      label: "Density",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: flutterSettings.density === level,
+        click: () => updateSettings({ edgeCrystals: { density: level } })
+      }))
+    },
+    {
+      label: "Glow Strength",
+      submenu: ["soft", "medium", "strong"].map((strength) => ({
+        label: strength[0].toUpperCase() + strength.slice(1),
+        type: "radio",
+        checked: flutterSettings.glowStrength === strength,
+        click: () => updateSettings({ edgeCrystals: { glowStrength: strength } })
+      }))
+    },
+    {
+      label: "Color Style",
+      submenu: [
+        { label: "Blue", value: "blue" },
+        { label: "Purple", value: "purple" },
+        { label: "Red", value: "red" },
+        { label: "White", value: "white" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flutterSettings.colorStyle === option.value,
+        click: () => updateSettings({ edgeCrystals: { colorStyle: option.value } })
+      }))
+    },
+    {
+      label: "Edge Mode",
+      submenu: [
+        { label: "Left", value: "left" },
+        { label: "Right", value: "right" },
+        { label: "Both", value: "both" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flutterSettings.edgeMode === option.value,
+        click: () => updateSettings({ edgeCrystals: { edgeMode: option.value } })
+      }))
+    }
+  ];
+}
+
 function buildActiveThemeMenuItems() {
   if (visualizerSettings.selectedTheme === "reactiveBorder") {
     return buildReactiveBorderMenuItems();
@@ -717,6 +788,10 @@ function buildActiveThemeMenuItems() {
 
   if (visualizerSettings.selectedTheme === "snowBubbleParticles") {
     return buildSnowBubbleParticlesMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "edgeCrystals") {
+    return buildEdgeCrystalsMenuItems();
   }
 
   return buildAmbientWaveMenuItems();
