@@ -3,12 +3,17 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-function createAudioBridge(sendLevel) {
+function createAudioBridge(sendLevel, onStatusChange = () => {}) {
   let helperProcess = null;
   let helperStatus = {
     mode: "simulated",
     reason: "Helper not started yet."
   };
+
+  function updateStatus(nextStatus) {
+    helperStatus = nextStatus;
+    onStatusChange(helperStatus);
+  }
 
   function findHelperBinary() {
     const appPath = app.getAppPath();
@@ -27,10 +32,10 @@ function createAudioBridge(sendLevel) {
     const helperBinary = findHelperBinary();
 
     if (!helperBinary) {
-      helperStatus = {
+      updateStatus({
         mode: "simulated",
         reason: "C# helper binary not found. Build or package the helper before enabling loopback capture."
-      };
+      });
       return;
     }
 
@@ -39,10 +44,10 @@ function createAudioBridge(sendLevel) {
       stdio: ["ignore", "pipe", "pipe"]
     });
 
-    helperStatus = {
+    updateStatus({
       mode: "helper",
       reason: "C# helper process connected."
-    };
+    });
 
     let stdoutBuffer = "";
 
@@ -64,27 +69,27 @@ function createAudioBridge(sendLevel) {
             sendLevel(message.value);
           }
         } catch (_error) {
-          helperStatus = {
+          updateStatus({
             mode: "simulated",
             reason: "Received invalid JSON from helper."
-          };
+          });
         }
       }
     });
 
     helperProcess.stderr.on("data", (chunk) => {
-      helperStatus = {
+      updateStatus({
         mode: "helper-error",
         reason: chunk.toString().trim() || "Helper reported an error."
-      };
+      });
     });
 
     helperProcess.on("exit", (code) => {
       helperProcess = null;
-      helperStatus = {
+      updateStatus({
         mode: "simulated",
         reason: `Helper stopped with exit code ${code}.`
-      };
+      });
     });
   }
 
@@ -93,6 +98,11 @@ function createAudioBridge(sendLevel) {
       helperProcess.kill();
       helperProcess = null;
     }
+
+    updateStatus({
+      mode: "simulated",
+      reason: "Helper stopped."
+    });
   }
 
   function getStatus() {
