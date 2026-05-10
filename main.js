@@ -1,7 +1,7 @@
-const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell } = require("electron");
 const path = require("path");
 const { createAudioBridge } = require("./audioBridge");
-const { createSettingsStore } = require("./settingsStore");
+const { createDefaultSettings, createSettingsStore, createThemeDefaults } = require("./settingsStore");
 
 let overlayWindow;
 let audioBridge;
@@ -10,6 +10,15 @@ let tray;
 let isPaused = false;
 let settingsStore;
 let visualizerSettings;
+
+const APP_VERSION = app.getVersion();
+const PROJECT_URL = "https://github.com/SamXop123/Paraline";
+const LANDING_URL = "https://paraline.vercel.app";
+const singleInstanceLock = app.requestSingleInstanceLock();
+
+if (!singleInstanceLock) {
+  app.quit();
+}
 
 const THEME_LABELS = {
   ambientWave: "Ambient Wave",
@@ -159,6 +168,45 @@ function resizeOverlayToPrimaryDisplay() {
 
   const { bounds } = screen.getPrimaryDisplay();
   overlayWindow.setBounds(bounds);
+  overlayWindow.setAlwaysOnTop(true, "screen-saver");
+  overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  overlayWindow.moveTop();
+}
+
+function handleAudioBridgeStatusChange(status) {
+  if (!status || status.mode === "helper") {
+    return;
+  }
+
+  startSimulatedAudioFallback();
+  refreshTrayMenu();
+}
+
+function resetCurrentThemeSettings() {
+  const themeDefaults = createThemeDefaults();
+  const selectedTheme = visualizerSettings.selectedTheme;
+  const nextThemeDefaults = themeDefaults[selectedTheme];
+
+  if (!nextThemeDefaults) {
+    return;
+  }
+
+  updateSettings({
+    [selectedTheme]: nextThemeDefaults
+  });
+}
+
+function resetAllSettings() {
+  visualizerSettings = settingsStore.save(createDefaultSettings());
+  isPaused = false;
+  sendVisualizerSettings();
+  refreshTrayMenu();
+}
+
+function openExternalUrl(url) {
+  shell.openExternal(url).catch(() => {
+    // Ignore shell open failures from tray actions.
+  });
 }
 
 function createTrayIcon() {
@@ -802,7 +850,22 @@ function refreshTrayMenu() {
     return;
   }
 
+  const bridgeStatus = audioBridge ? audioBridge.getStatus() : {
+    mode: "simulated",
+    reason: "Audio bridge not started."
+  };
+  const helperConnected = bridgeStatus.mode === "helper";
+
   const menu = Menu.buildFromTemplate([
+    {
+      label: `Paraline ${APP_VERSION}`,
+      enabled: false
+    },
+    {
+      label: helperConnected ? "Audio Capture: Live" : "Audio Capture: Fallback",
+      enabled: false
+    },
+    { type: "separator" },
     {
       label: isPaused ? "Resume Visualizer" : "Pause Visualizer",
       click: () => togglePaused()
@@ -817,6 +880,24 @@ function refreshTrayMenu() {
     },
     { type: "separator" },
     ...buildActiveThemeMenuItems(),
+    { type: "separator" },
+    {
+      label: `Reset ${THEME_LABELS[visualizerSettings.selectedTheme]} Settings`,
+      click: () => resetCurrentThemeSettings()
+    },
+    {
+      label: "Reset All Settings",
+      click: () => resetAllSettings()
+    },
+    { type: "separator" },
+    {
+      label: "Open Landing Page",
+      click: () => openExternalUrl(LANDING_URL)
+    },
+    {
+      label: "View GitHub Repository",
+      click: () => openExternalUrl(PROJECT_URL)
+    },
     { type: "separator" },
     {
       label: "Quit App",
@@ -862,8 +943,9 @@ app.whenReady().then(() => {
   audioBridge = createAudioBridge((value) => {
     stopSimulatedAudioFallback();
     sendAudioLevel(value, "helper");
-  });
+  }, handleAudioBridgeStatusChange);
   audioBridge.start();
+  refreshTrayMenu();
 
   screen.on("display-metrics-changed", resizeOverlayToPrimaryDisplay);
   screen.on("display-added", resizeOverlayToPrimaryDisplay);
@@ -874,6 +956,13 @@ app.whenReady().then(() => {
       createOverlayWindow();
     }
   });
+});
+
+app.on("second-instance", () => {
+  if (overlayWindow && !overlayWindow.isDestroyed()) {
+    resizeOverlayToPrimaryDisplay();
+    sendVisualizerSettings();
+  }
 });
 
 app.on("window-all-closed", () => {
