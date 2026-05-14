@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import HeroSection from "./components/sections/HeroSection";
 import ExperienceSection from "./components/sections/ExperienceSection";
 import ThemeShowcaseSection from "./components/sections/ThemeShowcaseSection";
@@ -106,6 +107,8 @@ export default function App() {
           />
         </main>
       </div>
+
+      <Analytics />
     </div>
   );
 }
