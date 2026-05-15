@@ -251,6 +251,24 @@ Paraline/
 
 ---
 
+## Theme System
+
+Each visualizer theme is implemented as an isolated rendering module inside the `themes/` directory.
+
+Themes generally:
+- Receive normalized audio level data
+- Read theme-specific settings
+- Render onto the shared canvas context
+- Manage their own animation behavior and styling
+
+New themes should:
+- Avoid excessive allocations during animation frames
+- Reuse shared utilities where possible
+- Keep rendering logic self-contained
+- Maintain smooth frame pacing
+
+---
+
 ## Developer Notes
 
 - The overlay window is transparent, frameless, always-on-top, and click-through.
