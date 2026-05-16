@@ -13,3 +13,4 @@ build/
 *.csproj.user
 landing-dev.err.log
 landing-dev.out.log
+audio-helper/Paraline.AudioBridge.csproj.lscache
