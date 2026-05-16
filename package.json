@@ -72,5 +72,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Paraline"
     }
+  },
+  "dependencies": {
+    "vite": "^8.0.13"
   }
 }

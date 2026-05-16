@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import HeroSection from "./components/sections/HeroSection";
 import ExperienceSection from "./components/sections/ExperienceSection";
 import ThemeShowcaseSection from "./components/sections/ThemeShowcaseSection";
 import CTASection from "./components/sections/CTASection";
+import Sidebar from "./components/Sidebar";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
 const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
@@ -53,6 +54,12 @@ export default function App() {
     });
   };
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    console.log(isSidebarOpen);
+  }
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-midnight text-white">
       <div className="pointer-events-none absolute inset-0 bg-noise opacity-80" />
@@ -65,9 +72,19 @@ export default function App() {
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
+      {isSidebarOpen &&
+          <Sidebar toggleSidebar={toggleSidebar}/>
+      }
+
       <div className="relative z-10">
         <header className="fixed inset-x-0 top-0 z-40">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-8">
+            <button
+              onClick={toggleSidebar}
+              className="absolute top-3 left-3 bg-white text-black">
+                <img src='./menu.svg' className="h-10"/>
+            </button>
+
             <a href="#hero" className="text-xs uppercase tracking-[0.45em] text-white/70 transition hover:text-white">
               Paraline
             </a>
