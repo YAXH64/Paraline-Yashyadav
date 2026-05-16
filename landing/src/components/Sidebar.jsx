@@ -4,7 +4,7 @@ export default function Sidebar({toggleSidebar}) {
       <div className="w-full h-[7%] p-[1vw] border-b border-gray-500">
         <h3 className="font-semibold text-white">PARALINE</h3>
         <button onClick={toggleSidebar}>
-          <img src='./sidebar.svg' className="h-8 invert absolute right-4 top-2.5"/>
+          <img src='./sidebar.svg' className="h-6 invert absolute right-4 top-3"/>
         </button>
       </div>
       <div className="w-full flex flex-col gap-1 p-[1vw] *:p-2 *:text-start *:w-[80%] *:rounded">
@@ -21,9 +21,13 @@ export default function Sidebar({toggleSidebar}) {
           <img src='./settings.svg' className="h-5 invert mr-2"/>Settings
         </button>
       </div>
-      <div className="h-full flex items-end gap-1 p-[1vw] *:p-2 *:text-start *:w-[80%] *:rounded">
+      <div className="h-full flex flex-col justify-end gap-1 p-[1vw] *:p-2 *:text-start *:w-[80%] *:rounded">
         <button className="hover:bg-slate-800 flex">
-          <img src='./customer-service.svg' className="h-5 invert mr-2"/>Contact Us</button>
+          <img src='./customer-service.svg' className="h-5 invert mr-2"/>Contact Us
+        </button>
+        <button className="hover:bg-slate-800 flex">
+          <img src='./github-svgrepo-com.svg' className="h-5 invert mr-2"/>Github
+        </button>
       </div>
     </div>
   );

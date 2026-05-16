@@ -81,8 +81,8 @@ export default function App() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-8">
             <button
               onClick={toggleSidebar}
-              className="absolute top-3 left-3 bg-white text-black">
-                <img src='./menu.svg' className="h-10"/>
+              className="absolute top-5 left-5 ">
+                <img src='./menu.svg' className="h-8"/>
             </button>
 
             <a href="#hero" className="text-xs uppercase tracking-[0.45em] text-white/70 transition hover:text-white">
