@@ -81,7 +81,7 @@ export default function App() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-8">
             <button
               onClick={toggleSidebar}
-              className="absolute top-5 left-5 ">
+              className="absolute top-5 left-5">
                 <img src='./menu.svg' className="h-8"/>
             </button>
 
