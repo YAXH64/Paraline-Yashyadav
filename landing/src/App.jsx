@@ -72,9 +72,7 @@ export default function App() {
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {isSidebarOpen &&
-          <Sidebar toggleSidebar={toggleSidebar}/>
-      }
+      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className="relative z-10">
         <header className="fixed inset-x-0 top-0 z-40">
