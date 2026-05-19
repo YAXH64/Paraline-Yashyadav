@@ -8,6 +8,7 @@ import CTASection from "./components/sections/CTASection";
 import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 import InstallationGuide from "./components/pages/InstallationGuide";
+import PrivacyPolicy from "./components/pages/PrivacyPolicy";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
 const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
@@ -58,6 +59,10 @@ export default function App() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -147,11 +152,13 @@ export default function App() {
             />
             </section>
         </>
+        ) : currentPage === "installation" ? (
+          <InstallationGuide setCurrentPage={setCurrentPage} />
         ) : (
-    <InstallationGuide setCurrentPage={setCurrentPage} />
-  )}
+          <PrivacyPolicy setCurrentPage={setCurrentPage} />
+        )}
         </main>
-        <Footer />
+        <Footer setCurrentPage={setCurrentPage} />
       </div>
 
       <Analytics />
