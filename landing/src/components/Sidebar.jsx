@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
+export default function Sidebar({ isSidebarOpen, toggleSidebar, currentPage, setCurrentPage }) {
   return (
     <>
       {/* Backdrop overlay */}
@@ -41,10 +41,23 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }) {
           <div className="flex flex-col gap-1 w-full">
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 mb-3 px-3 font-bold">Menu</p>
 
-            <SidebarItem icon="./sidebar-icons/home.svg" label="Home" to="#hero" active onClick={toggleSidebar}/>
-            <SidebarItem icon="./sidebar-icons/tools.svg" label="Installation Guide" to="https://github.com/SamXop123/Paraline#-installation" external onClick={toggleSidebar}/>
-            <SidebarItem icon="./sidebar-icons/theme.svg" label="Themes" to="#themes" onClick={toggleSidebar}/>
-            <SidebarItem icon="./sidebar-icons/settings.svg" label="Settings" to="#settings" onClick={toggleSidebar}/>
+            <SidebarItem icon="./sidebar-icons/home.svg" label="Home" to="#hero" active={currentPage === "home"} onClick={() => {
+    setCurrentPage("home");
+    toggleSidebar();
+  }}/>
+            <SidebarItem icon="./sidebar-icons/tools.svg" label="Installation Guide" active={currentPage === "installation"}
+  onClick={() => {
+    setCurrentPage("installation");
+    toggleSidebar();
+  }}/>
+            <SidebarItem icon="./sidebar-icons/theme.svg" label="Themes" to="#themes" onClick={() => {
+    setCurrentPage("home");
+    toggleSidebar();
+  }}/>
+            <SidebarItem icon="./sidebar-icons/settings.svg" label="Settings" to="#settings" onClick={() => {
+    setCurrentPage("home");
+    toggleSidebar();
+  }}/>
           </div>
 
           <div className="flex flex-col gap-1 w-full mt-10">

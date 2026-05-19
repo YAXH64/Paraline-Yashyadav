@@ -7,6 +7,7 @@ import ThemeShowcaseSection from "./components/sections/ThemeShowcaseSection";
 import CTASection from "./components/sections/CTASection";
 import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
+import InstallationGuide from "./components/pages/InstallationGuide";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
 const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
@@ -56,6 +57,8 @@ export default function App() {
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState("home");
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
     console.log(isSidebarOpen);
@@ -73,7 +76,12 @@ export default function App() {
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar 
+        isSidebarOpen={isSidebarOpen} 
+        toggleSidebar={toggleSidebar} 
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
 
       <div className="relative z-10">
         <header className="fixed inset-x-0 top-0 z-40 border border-gray-700 bg-[#02040c]/10 backdrop-blur-xl">
@@ -84,7 +92,11 @@ export default function App() {
                 <img src='./sidebar-icons/menu.svg' className="h-8"/>
             </button>
 
-            <a href="#hero" className="text-xs uppercase tracking-[0.45em] text-white/70 transition hover:text-white">
+            <a 
+              href="#hero" 
+              onClick={() => setCurrentPage("home")}
+              className="text-xs uppercase tracking-[0.45em] text-white/70 transition hover:text-white"
+            >
               Paraline
             </a>
             <div className="flex items-center gap-3">
@@ -109,6 +121,8 @@ export default function App() {
         </header>
 
         <main>
+          {currentPage === "home" ? (
+           <>
           <section id="hero" className="scroll-mt-28">
           <HeroSection
             downloadUrl={downloadUrl}
@@ -132,6 +146,10 @@ export default function App() {
             onDownloadClick={() => trackDownloadClick("cta")}
             />
             </section>
+        </>
+        ) : (
+    <InstallationGuide setCurrentPage={setCurrentPage} />
+  )}
         </main>
         <Footer />
       </div>
