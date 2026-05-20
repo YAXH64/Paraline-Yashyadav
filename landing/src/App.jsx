@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 import InstallationGuide from "./components/pages/InstallationGuide";
 import PrivacyPolicy from "./components/pages/PrivacyPolicy";
+import FAQPage from "./components/pages/FAQPage";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
 const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
@@ -156,6 +157,7 @@ export default function App() {
           <InstallationGuide setCurrentPage={setCurrentPage} />
         ) : (
           <PrivacyPolicy setCurrentPage={setCurrentPage} />
+          <FAQPage setCurrentPage={setCurrentPage} />
         )}
         </main>
         <Footer setCurrentPage={setCurrentPage} />
