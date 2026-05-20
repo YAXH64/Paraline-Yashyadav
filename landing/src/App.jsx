@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 import InstallationGuide from "./components/pages/InstallationGuide";
 import TermsPage from "./components/pages/TermsPage";
+import FAQPage from "./components/pages/FAQPage";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
 const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
@@ -154,6 +155,10 @@ export default function App() {
         )}
         {currentPage === "terms" && (
           <TermsPage setCurrentPage={setCurrentPage} />
+        ) : currentPage === "installation" ? (
+          <InstallationGuide setCurrentPage={setCurrentPage} />
+        ) : (
+          <FAQPage setCurrentPage={setCurrentPage} />
         )}
         </main>
         <Footer setCurrentPage={setCurrentPage} />
