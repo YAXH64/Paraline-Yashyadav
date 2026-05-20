@@ -155,10 +155,11 @@ export default function App() {
         </>
         ) : currentPage === "installation" ? (
           <InstallationGuide setCurrentPage={setCurrentPage} />
-        ) : (
+        ) : currentPage === "privacy" ? (
           <PrivacyPolicy setCurrentPage={setCurrentPage} />
+        ) : currentPage === "faq" ? (
           <FAQPage setCurrentPage={setCurrentPage} />
-        )}
+        ) : null}
         </main>
         <Footer setCurrentPage={setCurrentPage} />
       </div>
