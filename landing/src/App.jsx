@@ -8,6 +8,7 @@ import CTASection from "./components/sections/CTASection";
 import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 import InstallationGuide from "./components/pages/InstallationGuide";
+import FAQPage from "./components/pages/FAQPage";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
 const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
@@ -147,9 +148,11 @@ export default function App() {
             />
             </section>
         </>
+        ) : currentPage === "installation" ? (
+          <InstallationGuide setCurrentPage={setCurrentPage} />
         ) : (
-    <InstallationGuide setCurrentPage={setCurrentPage} />
-  )}
+          <FAQPage setCurrentPage={setCurrentPage} />
+        )}
         </main>
         <Footer />
       </div>
