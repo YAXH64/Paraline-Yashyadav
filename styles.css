@@ -114,21 +114,25 @@ body {
 }
 
 .menu-item.menu-title.disabled {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.37) !important;
-  padding-top: 6px;
-  padding-bottom: 2px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4) !important;
+  padding-top: 5px;
+  padding-bottom: 3px;
 }
 
 .menu-item.menu-status.disabled {
-  color: rgba(255, 255, 255, 0.88) !important;
+  font-size: 13.5px;
   font-weight: 500;
+  color: rgba(255, 255, 255, 0.4) !important;
+  padding-top: 3px;
+  padding-bottom: 5px;
 }
 
 .menu-item.menu-header.disabled {
-  color: rgba(255, 255, 255, 0.56) !important;
+  font-size: 13.5px;
   font-weight: 500;
+  color: rgba(255, 255, 255, 0.4) !important;
   padding-top: 6px;
   padding-bottom: 4px;
 }

@@ -1276,10 +1276,6 @@ function buildMenuDOM(items, container, subDirectionLeft) {
       const el = document.createElement("div");
       el.className = "menu-item menu-title disabled";
       
-      const spacerEl = document.createElement("div");
-      spacerEl.className = "item-icon-spacer";
-      el.appendChild(spacerEl);
-
       const labelEl = document.createElement("div");
       labelEl.className = "item-label";
       labelEl.textContent = item.label;
@@ -1302,20 +1298,15 @@ function buildMenuDOM(items, container, subDirectionLeft) {
         el.classList.add("submenu-left");
       }
 
-      // Icon/Check column
-      const iconEl = document.createElement("div");
-      iconEl.className = "item-icon";
-      if (item.icon) {
-        iconEl.innerHTML = item.icon;
-        if (item.type === 'status' && item.isLive) {
-          iconEl.style.color = "#2ecc71"; // Live green
-        } else if (item.type === 'status') {
-          iconEl.style.color = "rgba(255, 255, 255, 0.4)"; // Fallback gray
+      // Checkmark column (only for checkable items)
+      if (item.checked !== undefined) {
+        const iconEl = document.createElement("div");
+        iconEl.className = "item-icon";
+        if (item.checked) {
+          iconEl.innerHTML = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
         }
-      } else if (item.checked) {
-        iconEl.innerHTML = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+        el.appendChild(iconEl);
       }
-      el.appendChild(iconEl);
 
       // Label
       const labelEl = document.createElement("div");
