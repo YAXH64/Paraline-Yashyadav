@@ -51,7 +51,7 @@ function createOverlayWindow() {
     fullscreenable: false,
     skipTaskbar: true,
     hasShadow: false,
-    focusable: false,
+    focusable: true,
     backgroundColor: "#00000000",
     webPreferences: {
       contextIsolation: true,
@@ -93,9 +93,12 @@ function sendAudioLevel(value, source) {
 }
 
 function getRendererSettings() {
+  const helperConnected = audioBridge ? (audioBridge.getStatus().mode === "helper") : false;
   return {
     ...visualizerSettings,
-    paused: isPaused
+    paused: isPaused,
+    version: APP_VERSION,
+    helperConnected: helperConnected
   };
 }
 
@@ -950,6 +953,15 @@ function showCustomContextMenu() {
     return;
   }
   const cursorPoint = screen.getCursorScreenPoint();
+
+  // Force Windows to refresh the window's z-order relative to other topmost windows
+  // (like the tray overflow panel) by toggling setAlwaysOnTop and calling show()/focus()
+  overlayWindow.setAlwaysOnTop(false);
+  overlayWindow.setAlwaysOnTop(true, "screen-saver");
+  overlayWindow.show();
+  overlayWindow.focus();
+  overlayWindow.moveTop();
+
   overlayWindow.webContents.send("show-context-menu", {
     x: cursorPoint.x,
     y: cursorPoint.y
@@ -1011,6 +1023,7 @@ app.whenReady().then(() => {
     if (overlayWindow && !overlayWindow.isDestroyed()) {
       if (ignore) {
         overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+        overlayWindow.blur();
       } else {
         overlayWindow.setIgnoreMouseEvents(false);
       }

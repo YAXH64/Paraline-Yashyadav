@@ -97,7 +97,7 @@ body {
   transition: background 0.08s ease, color 0.08s ease;
 }
 
-.menu-item:hover {
+.menu-item:not(.disabled):hover {
   background: rgba(255, 255, 255, 0.11);
   color: #ffffff;
 }
@@ -110,22 +110,57 @@ body {
 .menu-item.disabled {
   color: rgba(255, 255, 255, 0.3) !important;
   background: transparent !important;
+  cursor: default;
 }
 
-/* Left Checkmark Column */
-.menu-item .item-check {
-  width: 18px;
+.menu-item.menu-title.disabled {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.37) !important;
+  padding-top: 6px;
+  padding-bottom: 2px;
+}
+
+.menu-item.menu-status.disabled {
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-weight: 500;
+}
+
+.menu-item.menu-header.disabled {
+  color: rgba(255, 255, 255, 0.56) !important;
+  font-weight: 500;
+  padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+/* Left Icon / Checkmark Column */
+.menu-item .item-icon {
+  width: 16px;
+  height: 16px;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  font-size: 11px;
-  color: #2ecc71;
-  font-weight: bold;
+  justify-content: center;
+  margin-right: 10px;
+  color: rgba(255, 255, 255, 0.56);
+  flex-shrink: 0;
 }
 
-.menu-item .item-check.radio {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
+/* Ensure checkmark inside item-icon has right color and size */
+.menu-item .item-icon .checkmark {
+  width: 12px;
+  height: 12px;
+  color: #2ecc71; /* Live green */
+}
+
+/* Hover icon color change */
+.menu-item:not(.disabled):hover .item-icon {
+  color: #ffffff;
+}
+
+.menu-item .item-icon-spacer {
+  width: 16px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .menu-item .item-label {
@@ -141,10 +176,18 @@ body {
 }
 
 .menu-item .item-chevron {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px;
+  height: 10px;
   color: rgba(255, 255, 255, 0.3);
   margin-left: 10px;
-  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.menu-item:not(.disabled):hover .item-chevron {
+  color: #ffffff;
 }
 
 /* Submenu Position and Display */

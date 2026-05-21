@@ -855,7 +855,7 @@ const THEME_INFOS = {
       },
       {
         key: "barDensity",
-        label: "Bar Density",
+        label: "Bar Count",
         choices: [
           { value: "low", label: "Low" },
           { value: "medium", label: "Medium" },
@@ -1095,16 +1095,45 @@ const THEME_INFOS = {
 
 let isMenuOpen = false;
 
+const ICONS = {
+  waveform: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4"/><path d="M6 6v12"/><path d="M9 3v18"/><path d="M12 7v10"/><path d="M15 5v14"/><path d="M18 8v8"/><path d="M21 10v4"/></svg>`,
+  pause: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>`,
+  play: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>`,
+  reload: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.72 2.78L21 8"/><polyline points="21 3 21 8 16 8"/></svg>`,
+  visualizerMode: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="2" y1="14" x2="6" y2="14"/><line x1="10" y1="8" x2="14" y2="8"/><line x1="18" y1="16" x2="22" y2="16"/></svg>`,
+  settings: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  settingsOption: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  colorStyle: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-10a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-4 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm2-4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>`,
+  barThickness: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/></svg>`,
+  sensitivity: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`,
+  barCount: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>`,
+  reset: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>`,
+  globe: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+  github: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>`,
+  quit: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`,
+  chevron: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`
+};
+
 function getContextMenuStructure() {
   const currentTheme = visualizerState.selectedTheme;
   const isPaused = visualizerState.paused;
+  const version = visualizerState.version || '1.1.0';
+  const helperConnected = visualizerState.helperConnected || (latestSource === 'helper');
 
   const structure = [
-    { type: 'label', label: 'Paraline Visualizer' },
+    { type: 'title', label: `Paraline ${version}` },
+    {
+      type: 'status',
+      label: helperConnected ? 'Audio Capture: Live' : 'Audio Capture: Fallback',
+      isLive: helperConnected,
+      icon: ICONS.waveform
+    },
+    { type: 'divider' },
+    
     {
       type: 'item',
       label: isPaused ? 'Resume Visualizer' : 'Pause Visualizer',
-      checked: isPaused,
+      icon: isPaused ? ICONS.play : ICONS.pause,
       action: () => {
         window.visualizerSettings.action('toggle-paused');
       }
@@ -1112,16 +1141,15 @@ function getContextMenuStructure() {
     {
       type: 'item',
       label: 'Reload Visualizer',
+      icon: ICONS.reload,
       action: () => {
         window.visualizerSettings.action('reload');
       }
     },
-    { type: 'divider' },
-    
-    // Theme selection submenu
     {
       type: 'item',
       label: 'Visualizer Mode',
+      icon: ICONS.visualizerMode,
       submenu: Object.keys(THEME_INFOS).map(themeId => ({
         type: 'item',
         label: THEME_INFOS[themeId].label,
@@ -1135,59 +1163,96 @@ function getContextMenuStructure() {
 
   // Add the settings of the currently selected theme
   const activeThemeInfo = THEME_INFOS[currentTheme];
-  if (activeThemeInfo && activeThemeInfo.options && activeThemeInfo.options.length > 0) {
+  if (activeThemeInfo) {
     structure.push({ type: 'divider' });
-    structure.push({ type: 'label', label: activeThemeInfo.settingsHeader });
-
-    activeThemeInfo.options.forEach(opt => {
-      const currentVal = visualizerState[currentTheme]?.[opt.key];
-      
-      structure.push({
-        type: 'item',
-        label: opt.label,
-        submenu: opt.choices.map(choice => ({
-          type: 'item',
-          label: choice.label,
-          checked: currentVal === choice.value,
-          action: () => {
-            window.visualizerSettings.update({
-              [currentTheme]: {
-                [opt.key]: choice.value
-              }
-            });
-          }
-        }))
-      });
+    structure.push({
+      type: 'header',
+      label: activeThemeInfo.settingsHeader,
+      icon: ICONS.settings
     });
+
+    if (activeThemeInfo.options && activeThemeInfo.options.length > 0) {
+      activeThemeInfo.options.forEach(opt => {
+        const currentVal = visualizerState[currentTheme]?.[opt.key];
+        
+        let optionIcon = ICONS.settings;
+        const lowerLabel = opt.label.toLowerCase();
+        if (lowerLabel.includes('color')) {
+          optionIcon = ICONS.colorStyle;
+        } else if (lowerLabel.includes('thickness') || lowerLabel.includes('size')) {
+          optionIcon = ICONS.barThickness;
+        } else if (lowerLabel.includes('sensitivity') || lowerLabel.includes('speed') || lowerLabel.includes('intensity') || lowerLabel.includes('motion')) {
+          optionIcon = ICONS.sensitivity;
+        } else if (lowerLabel.includes('count') || lowerLabel.includes('density') || lowerLabel.includes('area') || lowerLabel.includes('behavior') || lowerLabel.includes('mode')) {
+          optionIcon = ICONS.barCount;
+        }
+
+        structure.push({
+          type: 'item',
+          label: opt.label,
+          icon: optionIcon,
+          submenu: opt.choices.map(choice => ({
+            type: 'item',
+            label: choice.label,
+            checked: currentVal === choice.value,
+            action: () => {
+              window.visualizerSettings.update({
+                [currentTheme]: {
+                  [opt.key]: choice.value
+                }
+              });
+            }
+          }))
+        });
+      });
+    }
   }
 
-  // Divider and utility actions
+  // Reset theme settings and reset all settings
   structure.push({ type: 'divider' });
+  const themeLabel = THEME_INFOS[currentTheme]?.label || 'Theme';
   structure.push({
     type: 'item',
-    label: 'Reset Settings',
-    submenu: [
-      {
-        type: 'item',
-        label: 'Reset Current Theme',
-        action: () => {
-          window.visualizerSettings.action('reset-theme');
-        }
-      },
-      {
-        type: 'item',
-        label: 'Reset All Settings',
-        action: () => {
-          window.visualizerSettings.action('reset-all');
-        }
-      }
-    ]
+    label: `Reset ${themeLabel} Settings`,
+    icon: ICONS.reset,
+    action: () => {
+      window.visualizerSettings.action('reset-theme');
+    }
+  });
+  structure.push({
+    type: 'item',
+    label: 'Reset All Settings',
+    icon: ICONS.reset,
+    action: () => {
+      window.visualizerSettings.action('reset-all');
+    }
   });
 
+  // Open Landing Page, View GitHub Repository
   structure.push({ type: 'divider' });
   structure.push({
     type: 'item',
-    label: 'Quit Paraline',
+    label: 'Open Landing Page',
+    icon: ICONS.globe,
+    action: () => {
+      window.visualizerSettings.action('open-url', 'https://paraline.vercel.app');
+    }
+  });
+  structure.push({
+    type: 'item',
+    label: 'View GitHub Repository',
+    icon: ICONS.github,
+    action: () => {
+      window.visualizerSettings.action('open-url', 'https://github.com/SamXop123/Paraline');
+    }
+  });
+
+  // Quit App
+  structure.push({ type: 'divider' });
+  structure.push({
+    type: 'item',
+    label: 'Quit App',
+    icon: ICONS.quit,
     action: () => {
       window.visualizerSettings.action('quit');
     }
@@ -1207,20 +1272,50 @@ function buildMenuDOM(items, container, subDirectionLeft) {
       const el = document.createElement("div");
       el.className = "menu-divider";
       container.appendChild(el);
-    } else if (item.type === 'item') {
+    } else if (item.type === 'title') {
+      const el = document.createElement("div");
+      el.className = "menu-item menu-title disabled";
+      
+      const spacerEl = document.createElement("div");
+      spacerEl.className = "item-icon-spacer";
+      el.appendChild(spacerEl);
+
+      const labelEl = document.createElement("div");
+      labelEl.className = "item-label";
+      labelEl.textContent = item.label;
+      el.appendChild(labelEl);
+
+      container.appendChild(el);
+    } else if (item.type === 'status' || item.type === 'header' || item.type === 'item') {
       const el = document.createElement("div");
       el.className = "menu-item";
+      
+      if (item.type === 'status') {
+        el.classList.add("menu-status", "disabled");
+      } else if (item.type === 'header') {
+        el.classList.add("menu-header", "disabled");
+      } else if (item.disabled) {
+        el.classList.add("disabled");
+      }
+
       if (subDirectionLeft && item.submenu) {
         el.classList.add("submenu-left");
       }
 
-      // Checkmark column
-      const checkEl = document.createElement("div");
-      checkEl.className = "item-check";
-      if (item.checked) {
-        checkEl.textContent = "✓";
+      // Icon/Check column
+      const iconEl = document.createElement("div");
+      iconEl.className = "item-icon";
+      if (item.icon) {
+        iconEl.innerHTML = item.icon;
+        if (item.type === 'status' && item.isLive) {
+          iconEl.style.color = "#2ecc71"; // Live green
+        } else if (item.type === 'status') {
+          iconEl.style.color = "rgba(255, 255, 255, 0.4)"; // Fallback gray
+        }
+      } else if (item.checked) {
+        iconEl.innerHTML = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
       }
-      el.appendChild(checkEl);
+      el.appendChild(iconEl);
 
       // Label
       const labelEl = document.createElement("div");
@@ -1232,7 +1327,7 @@ function buildMenuDOM(items, container, subDirectionLeft) {
       if (item.submenu) {
         const chevronEl = document.createElement("div");
         chevronEl.className = "item-chevron";
-        chevronEl.textContent = "›";
+        chevronEl.innerHTML = ICONS.chevron;
         el.appendChild(chevronEl);
 
         const submenuContainer = document.createElement("div");
@@ -1243,7 +1338,7 @@ function buildMenuDOM(items, container, subDirectionLeft) {
       }
 
       // Action listener
-      if (item.action) {
+      if (item.action && item.type === 'item') {
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           item.action();
@@ -1273,23 +1368,42 @@ function showMenu(x, y) {
   const structure = getContextMenuStructure();
 
   // 4. Calculate bounds and submenu direction
-  const menuWidth = 240;
-  const menuHeight = 400; // estimated max height
+  // Temporarily show container to measure actual height and width
+  menuContainer.style.visibility = "hidden";
+  menuContainer.classList.remove("hidden");
+  
+  // Build DOM first so we can measure it
+  buildMenuDOM(structure, menuContainer, false);
+  
+  const actualWidth = menuContainer.offsetWidth || 240;
+  const actualHeight = menuContainer.offsetHeight || 440;
+  
+  // Reset visibility state
+  menuContainer.innerHTML = "";
+  menuContainer.classList.add("hidden");
+  menuContainer.style.visibility = "";
+
   let targetX = x;
   let targetY = y;
 
-  if (x + menuWidth > window.innerWidth) {
-    targetX = window.innerWidth - menuWidth - 10;
+  if (x + actualWidth > window.innerWidth) {
+    targetX = x - actualWidth;
   }
-  if (y + menuHeight > window.innerHeight) {
-    targetY = window.innerHeight - menuHeight - 10;
+  if (y + actualHeight > window.innerHeight) {
+    targetY = y - actualHeight;
   }
   if (targetX < 10) targetX = 10;
   if (targetY < 10) targetY = 10;
+  if (targetX + actualWidth > window.innerWidth - 10) {
+    targetX = window.innerWidth - actualWidth - 10;
+  }
+  if (targetY + actualHeight > window.innerHeight - 10) {
+    targetY = window.innerHeight - actualHeight - 10;
+  }
 
-  const subDirectionLeft = (targetX + menuWidth + 200 > window.innerWidth);
+  const subDirectionLeft = (targetX + actualWidth + 200 > window.innerWidth);
 
-  // 5. Populate DOM
+  // 5. Populate DOM for real
   buildMenuDOM(structure, menuContainer, subDirectionLeft);
 
   // 6. Position and show the menu
