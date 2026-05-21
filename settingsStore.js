@@ -51,7 +51,11 @@ const DEFAULT_SETTINGS = Object.freeze({
     density: "medium",
     motionStyle: "balanced",
     glowStrength: "medium",
-    particleSize: "medium"
+    particleSize: "medium",
+    customThickness: 4,
+    customGap: 7,
+    customSensitivity: 30,
+    customSpeed: 30
   }),
   edgeCrystals: Object.freeze({
     flutterStyle: "balanced",
@@ -208,7 +212,11 @@ function sanitizeSnowBubbleParticles(input = {}) {
     density: pick(input.density, VALID_LEVELS, DEFAULT_SETTINGS.snowBubbleParticles.density),
     motionStyle: pick(input.motionStyle, VALID_DOT_PARTICLES_MOTION_STYLES, DEFAULT_SETTINGS.snowBubbleParticles.motionStyle),
     glowStrength: pick(input.glowStrength, VALID_GLOW_STRENGTHS, DEFAULT_SETTINGS.snowBubbleParticles.glowStrength),
-    particleSize: pick(input.particleSize, VALID_PARTICLE_SIZES, DEFAULT_SETTINGS.snowBubbleParticles.particleSize)
+    particleSize: pick(input.particleSize, VALID_PARTICLE_SIZES, DEFAULT_SETTINGS.snowBubbleParticles.particleSize),
+    customGap: typeof input.customGap === "number" ? input.customGap : DEFAULT_SETTINGS.snowBubbleParticles.customGap,
+    customSpeed: typeof input.customSpeed === "number" ? input.customSpeed : DEFAULT_SETTINGS.snowBubbleParticles.customSpeed,
+    customThickness: typeof input.customThickness === "number" ? input.customThickness : DEFAULT_SETTINGS.snowBubbleParticles.customThickness,
+    customSensitivity: typeof input.customSensitivity === "number" ? input.customSensitivity : DEFAULT_SETTINGS.snowBubbleParticles.customSensitivity
   };
 }
 
