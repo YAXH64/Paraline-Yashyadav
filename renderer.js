@@ -1377,36 +1377,49 @@ function showMenu(x, y, trayBounds, inOverflow, taskbarPosition) {
   let targetX = x;
   let targetY = y;
 
-  if (trayBounds && typeof trayBounds.x === 'number') {
+  let validBounds = trayBounds;
+  if (!validBounds || 
+      (validBounds.x === 0 || validBounds.y === 0) || 
+      validBounds.width === 0 || 
+      validBounds.height === 0) {
+    validBounds = {
+      x: x - 12,
+      y: y - 12,
+      width: 24,
+      height: 24
+    };
+  }
+
+  if (validBounds && typeof validBounds.x === 'number') {
     if (inOverflow) {
       // Clicked inside the overflow panel: place context menu adjacent to it (offset by 140px to clear the panel bounds)
       if (taskbarPosition === 'left') {
-        targetX = trayBounds.x + trayBounds.width + 140;
-        targetY = trayBounds.y;
+        targetX = validBounds.x + validBounds.width + 140;
+        targetY = validBounds.y;
       } else if (taskbarPosition === 'right') {
-        targetX = trayBounds.x - actualWidth - 140;
-        targetY = trayBounds.y;
+        targetX = validBounds.x - actualWidth - 140;
+        targetY = validBounds.y;
       } else if (taskbarPosition === 'top') {
-        targetX = trayBounds.x - actualWidth - 140;
-        targetY = trayBounds.y;
+        targetX = validBounds.x - actualWidth - 140;
+        targetY = validBounds.y;
       } else { // bottom
-        targetX = trayBounds.x - actualWidth - 140;
-        targetY = (trayBounds.y + trayBounds.height) - actualHeight;
+        targetX = validBounds.x - actualWidth - 140;
+        targetY = (validBounds.y + validBounds.height) - actualHeight;
       }
     } else {
       // Clicked directly on the taskbar: place context menu directly adjacent/centered near the tray icon
       if (taskbarPosition === 'left') {
-        targetX = trayBounds.x + trayBounds.width + 5;
-        targetY = trayBounds.y + (trayBounds.height / 2) - (actualHeight / 2);
+        targetX = validBounds.x + validBounds.width + 5;
+        targetY = validBounds.y + (validBounds.height / 2) - (actualHeight / 2);
       } else if (taskbarPosition === 'right') {
-        targetX = trayBounds.x - actualWidth - 5;
-        targetY = trayBounds.y + (trayBounds.height / 2) - (actualHeight / 2);
+        targetX = validBounds.x - actualWidth - 5;
+        targetY = validBounds.y + (validBounds.height / 2) - (actualHeight / 2);
       } else if (taskbarPosition === 'top') {
-        targetX = trayBounds.x + (trayBounds.width / 2) - (actualWidth / 2);
-        targetY = trayBounds.y + trayBounds.height + 5;
+        targetX = validBounds.x + (validBounds.width / 2) - (actualWidth / 2);
+        targetY = validBounds.y + validBounds.height + 5;
       } else { // bottom
-        targetX = trayBounds.x + (trayBounds.width / 2) - (actualWidth / 2);
-        targetY = trayBounds.y - actualHeight - 5;
+        targetX = validBounds.x + (validBounds.width / 2) - (actualWidth / 2);
+        targetY = validBounds.y - actualHeight - 5;
       }
     }
   } else {

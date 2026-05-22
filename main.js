@@ -957,35 +957,51 @@ function showCustomContextMenu() {
   let inOverflow = false;
   let taskbarPosition = "bottom";
 
+  try {
+    const display = screen.getDisplayMatching(cursorPoint);
+    const { bounds, workArea } = display;
+
+    if (workArea.x > bounds.x) {
+      taskbarPosition = "left";
+    } else if (workArea.y > bounds.y) {
+      taskbarPosition = "top";
+    } else if (workArea.width < bounds.width) {
+      taskbarPosition = "right";
+    } else {
+      taskbarPosition = "bottom";
+    }
+
+    const EDGE_THRESHOLD = 60;
+    if (taskbarPosition === "bottom") {
+      inOverflow = cursorPoint.y < (bounds.y + bounds.height - EDGE_THRESHOLD);
+    } else if (taskbarPosition === "top") {
+      inOverflow = cursorPoint.y > (bounds.y + EDGE_THRESHOLD);
+    } else if (taskbarPosition === "left") {
+      inOverflow = cursorPoint.x > (bounds.x + EDGE_THRESHOLD);
+    } else if (taskbarPosition === "right") {
+      inOverflow = cursorPoint.x < (bounds.x + bounds.width - EDGE_THRESHOLD);
+    }
+  } catch (err) {
+    console.error("Failed to calculate display workarea matching cursor:", err);
+  }
+
   if (tray) {
     try {
       trayBounds = tray.getBounds();
-      const display = screen.getDisplayMatching(trayBounds);
-      const { bounds, workArea } = display;
-
-      if (workArea.x > bounds.x) {
-        taskbarPosition = "left";
-      } else if (workArea.y > bounds.y) {
-        taskbarPosition = "top";
-      } else if (workArea.width < bounds.width) {
-        taskbarPosition = "right";
-      } else {
-        taskbarPosition = "bottom";
-      }
-
-      if (taskbarPosition === "bottom") {
-        inOverflow = trayBounds.y < (workArea.y + workArea.height - 10);
-      } else if (taskbarPosition === "top") {
-        inOverflow = trayBounds.y > (workArea.y + 10);
-      } else if (taskbarPosition === "left") {
-        inOverflow = trayBounds.x > (workArea.x + 10);
-      } else if (taskbarPosition === "right") {
-        inOverflow = trayBounds.x < (workArea.x + workArea.width - 10);
+      if (!trayBounds || trayBounds.x === 0 || trayBounds.y === 0 || trayBounds.width === 0 || trayBounds.height === 0) {
+        trayBounds = {
+          x: cursorPoint.x - 12,
+          y: cursorPoint.y - 12,
+          width: 24,
+          height: 24
+        };
       }
     } catch (err) {
-      console.error("Failed to calculate tray bounds / overflow status:", err);
+      console.error("Failed to calculate tray bounds:", err);
     }
   }
+
+  console.log("showCustomContextMenu called. cursor:", cursorPoint, "trayBounds:", trayBounds, "inOverflow:", inOverflow, "taskbarPosition:", taskbarPosition);
 
   // Force Windows to refresh the window's z-order relative to other topmost windows
   // (like the tray overflow panel) by toggling setAlwaysOnTop and calling show()/focus()
