@@ -12,6 +12,32 @@ let tray;
 let isPaused = false;
 let settingsStore;
 let visualizerSettings;
+let settingsWindow;
+
+function createSettingsWindow() {
+  if (settingsWindow) {
+    settingsWindow.focus();
+    return;
+  }
+  settingsWindow = new BrowserWindow({
+    width: 900,
+    height: 650,
+    minWidth: 800,
+    minHeight: 600,
+    title: "Paraline Settings",
+    backgroundColor: "#121212",
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, "preload.js")
+    },
+    autoHideMenuBar: true
+  });
+  settingsWindow.loadFile("settings.html");
+  settingsWindow.on("closed", () => {
+    settingsWindow = null;
+  });
+}
 
 const APP_VERSION = app.getVersion();
 const PROJECT_URL = "https://github.com/SamXop123/Paraline";
@@ -226,26 +252,12 @@ function openExternalUrl(url) {
 }
 
 function createTrayIcon() {
-  const isWindows = process.platform === "win32";
-
-  // On Windows, prefer the .ico file which contains all resolutions (16, 32, 48, 256px)
-  // natively — this avoids blurry downscaling from a single PNG on high-DPI displays.
-  // Fall back to .png for non-Windows platforms or when the .ico is not yet present.
-  const iconCandidates = isWindows
-    ? [
-        path.join(process.resourcesPath, "assets", "appicon.ico"),
-        path.join(__dirname, "assets", "appicon.ico"),
-        path.join(process.resourcesPath, "assets", "appicon.png"),
-        path.join(process.resourcesPath, "assets", "paraline.png"),
-        path.join(__dirname, "assets", "appicon.png"),
-        path.join(__dirname, "assets", "paraline.png")
-      ]
-    : [
-        path.join(process.resourcesPath, "assets", "appicon.png"),
-        path.join(process.resourcesPath, "assets", "paraline.png"),
-        path.join(__dirname, "assets", "appicon.png"),
-        path.join(__dirname, "assets", "paraline.png")
-      ];
+  const iconCandidates = [
+    path.join(process.resourcesPath, "assets", "appicon.png"),
+    path.join(process.resourcesPath, "assets", "paraline.png"),
+    path.join(__dirname, "assets", "appicon.png"),
+    path.join(__dirname, "assets", "paraline.png")
+  ];
 
   const iconPath = iconCandidates.find((candidatePath) => {
     try {
@@ -259,11 +271,6 @@ function createTrayIcon() {
     const image = nativeImage.createFromPath(iconPath);
 
     if (!image.isEmpty()) {
-      // ICO files already embed multi-resolution sizes — no need to resize.
-      // Only resize PNG fallbacks to the 16×16 tray size.
-      if (iconPath.endsWith(".ico")) {
-        return image;
-      }
       return image.resize({ width: 16, height: 16 });
     }
   }
@@ -893,6 +900,11 @@ function refreshTrayMenu() {
 
   const menu = Menu.buildFromTemplate([
     {
+      label: "Open Settings",
+      click: () => createSettingsWindow()
+    },
+    { type: "separator" },
+    {
       label: `Paraline ${APP_VERSION}`,
       enabled: false
     },
@@ -966,6 +978,24 @@ app.whenReady().then(() => {
 
   ipcMain.handle("visualizer-settings:get", () => {
     return getRendererSettings();
+  });
+
+  ipcMain.handle("visualizer-settings:update", (_event, patch) => {
+    updateSettings(patch);
+    return getRendererSettings();
+  });
+
+  ipcMain.handle("app:toggle-pause", () => {
+    togglePaused();
+    return isPaused;
+  });
+
+  ipcMain.handle("app:reload-visualizer", () => {
+    reloadVisualizer();
+  });
+  
+  ipcMain.handle("app:open-external", (_event, url) => {
+    openExternalUrl(url);
   });
 
   createOverlayWindow();

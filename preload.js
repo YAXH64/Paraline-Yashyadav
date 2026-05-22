@@ -25,5 +25,14 @@ contextBridge.exposeInMainWorld("visualizerSettings", {
   },
   get() {
     return ipcRenderer.invoke("visualizer-settings:get");
+  },
+  update(patch) {
+    return ipcRenderer.invoke("visualizer-settings:update", patch);
   }
+});
+
+contextBridge.exposeInMainWorld("paralineApp", {
+  togglePause: () => ipcRenderer.invoke("app:toggle-pause"),
+  reloadVisualizer: () => ipcRenderer.invoke("app:reload-visualizer"),
+  openExternal: (url) => ipcRenderer.invoke("app:open-external", url)
 });

@@ -1,7 +1,8 @@
 (() => {
   const {
     getGlowMultiplier,
-    resolveAnimatedColor
+    resolveAnimatedColor,
+    hexToHsl
   } = window.ParalineShared;
 
   const RAINBOW_BORDER_INSET = 0;
@@ -14,7 +15,12 @@
     warmGlow: { mode: "range", hueA: 22, hueB: 48, saturation: 96, lightness: 68 }
   };
 
-  function getReactiveBorderStyle(settings) {
+  function getReactiveColorStyle(settings) {
+    if (settings.colorStyle === "custom" && settings.customColors && settings.customColors.length >= 2) {
+      const hsl1 = hexToHsl(settings.customColors[0]);
+      const hsl2 = hexToHsl(settings.customColors[1]);
+      return { mode: "range", hueA: hsl1.h, hueB: hsl2.h, saturation: hsl1.s, lightness: hsl1.l };
+    }
     return REACTIVE_BORDER_STYLES[settings.colorStyle] || REACTIVE_BORDER_STYLES.rainbow;
   }
 
@@ -30,16 +36,15 @@
     return 1;
   }
 
-  function getReactiveInputMultiplier(settings) {
-    if (settings.intensity === "low") {
-      return 1.6;
-    }
+  function getReactiveInputMultiplier(settings = {}) {
+    let base = 2.4;
+    if (settings.intensity === "low") base = 1.6;
+    if (settings.intensity === "high") base = 3.4;
 
-    if (settings.intensity === "high") {
-      return 3.4;
+    if (settings.intensity === "custom" && typeof settings.customSensitivity === "number") {
+      return base * (settings.customSensitivity / 30);
     }
-
-    return 2.4;
+    return base;
   }
 
   function drawReactiveBorderEdge(context, options) {
@@ -91,7 +96,7 @@
       settings
     } = options;
 
-    const reactiveStyle = getReactiveBorderStyle(settings);
+    const reactiveStyle = getReactiveColorStyle(settings);
     const intensityMultiplier = getReactiveIntensityMultiplier(settings);
     const glowMultiplier = getGlowMultiplier(settings.glowStrength);
     const thicknessBase = settings.borderThickness === "custom" && typeof settings.customThickness === "number"

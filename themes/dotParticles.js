@@ -21,19 +21,23 @@
   let beatPulse = 0;
 
   function getDotParticlesAudioMultiplier(settings = {}) {
-    if (settings.motionStyle === "calm") {
-      return 2.4;
-    }
+    let base = 3.1;
+    if (settings.motionStyle === "calm") base = 2.4;
+    if (settings.motionStyle === "energetic") base = 4;
 
-    if (settings.motionStyle === "energetic") {
-      return 4;
+    if (settings.motionStyle === "custom" && typeof settings.customSensitivity === "number") {
+      return base * (settings.customSensitivity / 30);
     }
-
-    return 3.1;
+    return base;
   }
 
   function getDensityCount(settings, width, height) {
     const perimeter = Math.max(1, 2 * (width + height));
+
+    if (settings.density === "custom" && typeof settings.customGap === "number") {
+      const factor = settings.customGap * 2;
+      return Math.min(300, Math.max(20, Math.round(perimeter / factor)));
+    }
 
     if (settings.density === "low") {
       return Math.min(130, Math.max(56, Math.round(perimeter / 58)));
@@ -47,6 +51,15 @@
   }
 
   function getMotionProfile(settings = {}) {
+    if (settings.motionStyle === "custom" && typeof settings.customSpeed === "number") {
+      const scale = settings.customSpeed / 30;
+      return {
+        baseSpeed: 30 * scale,
+        audioBoost: 120 * scale,
+        jitter: 2.5 * scale
+      };
+    }
+
     if (settings.motionStyle === "calm") {
       return {
         baseSpeed: 18,

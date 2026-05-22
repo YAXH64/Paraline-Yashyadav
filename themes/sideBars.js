@@ -1,6 +1,7 @@
 (() => {
   const {
-    clamp01
+    clamp01,
+    hexToRgb
   } = window.ParalineShared;
 
   const SIDE_BARS_STYLES = {
@@ -28,25 +29,37 @@
     }
   };
 
+
+
   function getSideBarsSettingsColor(settings) {
+    if (settings.colorStyle === "custom" && Array.isArray(settings.customColors)) {
+      return {
+        mode: "palette",
+        colors: settings.customColors.map(hexToRgb)
+      };
+    }
     return SIDE_BARS_STYLES[settings.colorStyle] || SIDE_BARS_STYLES.multicolor;
   }
 
   function getSideBarsAudioMultiplier(settings = {}) {
-    const sensitivity = settings.sensitivity || "medium";
+    let base = 3;
+    if (settings.sensitivity === "low") base = 2.2;
+    if (settings.sensitivity === "high") base = 4.2;
 
-    if (sensitivity === "low") {
-      return 2.2;
+    if (settings.sensitivity === "custom" && typeof settings.customSensitivity === "number") {
+      return base * (settings.customSensitivity / 30);
     }
-
-    if (sensitivity === "high") {
-      return 4.2;
-    }
-
-    return 3;
+    return base;
   }
 
   function getSideBarsThicknessProfile(settings = {}) {
+    if (settings.barThickness === "custom" && typeof settings.customThickness === "number") {
+      return {
+        barHeight: settings.customThickness,
+        gap: getSideBarsDensityGap(settings)
+      };
+    }
+
     if (settings.barThickness === "thin") {
       return {
         barHeight: 2,
@@ -69,6 +82,10 @@
   }
 
   function getSideBarsDensityGap(settings = {}) {
+    if (settings.barDensity === "custom" && typeof settings.customGap === "number") {
+      return settings.customGap;
+    }
+
     if (settings.barDensity === "low") {
       return 11;
     }

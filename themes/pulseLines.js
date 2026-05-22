@@ -1,6 +1,7 @@
 (() => {
   const {
-    clamp01
+    clamp01,
+    hexToRgb
   } = window.ParalineShared;
 
   const RIPPLE_COLORS = {
@@ -39,15 +40,17 @@
   let lastMotionTime = 0;
 
   function getFlatRipplesAudioMultiplier(settings = {}) {
-    if (settings.speed === "energetic") {
-      return 3.5;
+    let base = 2.3;
+    if (settings.speed === "energetic") base = 3.5;
+    if (settings.speed === "balanced") base = 2.9;
+    if (settings.speed === "custom" && typeof settings.customSpeed === "number") {
+      base = 2.9 * (settings.customSpeed / 30);
     }
 
-    if (settings.speed === "balanced") {
-      return 2.9;
+    if (settings.intensity === "custom" && typeof settings.customSensitivity === "number") {
+      return base * (settings.customSensitivity / 30);
     }
-
-    return 2.3;
+    return base;
   }
 
   function easeAudioLevel(value) {
@@ -55,11 +58,26 @@
   }
 
   function getRippleProfile(settings = {}) {
+    const thickness = typeof settings.customThickness === "number" ? settings.customThickness : null;
+
+    if (settings.intensity === "custom" && typeof settings.customSensitivity === "number") {
+      const scale = settings.customSensitivity / 30;
+      return {
+        amplitude: 16 * scale,
+        trailGap: 20,
+        lineWidth: thickness ?? 2,
+        glow: 8 * scale,
+        frontWidth: 50 * scale,
+        baseSpeed: 34 * scale,
+        alpha: clamp01(0.8 * scale)
+      };
+    }
+
     if (settings.intensity === "low") {
       return {
         amplitude: 11,
         trailGap: 22,
-        lineWidth: 1.7,
+        lineWidth: thickness ?? 1.7,
         glow: 6,
         frontWidth: 44,
         baseSpeed: 28,
@@ -71,7 +89,7 @@
       return {
         amplitude: 22,
         trailGap: 18,
-        lineWidth: 2.3,
+        lineWidth: thickness ?? 2.3,
         glow: 10,
         frontWidth: 58,
         baseSpeed: 42,
@@ -82,7 +100,7 @@
     return {
       amplitude: 16,
       trailGap: 20,
-      lineWidth: 2,
+      lineWidth: thickness ?? 2,
       glow: 8,
       frontWidth: 50,
       baseSpeed: 34,
@@ -91,6 +109,14 @@
   }
 
   function getSpeedProfile(settings = {}) {
+    if (settings.speed === "custom" && typeof settings.customSpeed === "number") {
+      const scale = settings.customSpeed / 30;
+      return {
+        base: 0.5 * scale,
+        audioBoost: 24 * scale
+      };
+    }
+
     if (settings.speed === "energetic") {
       return {
         base: 0.68,
@@ -115,8 +141,18 @@
     return Math.round(a + (b - a) * t);
   }
 
+  function getPulseLinesSettingsColor(settings) {
+    if (settings.colorStyle === "custom" && Array.isArray(settings.customColors)) {
+      return {
+        mode: "palette",
+        colors: settings.customColors.map(hexToRgb)
+      };
+    }
+    return RIPPLE_COLORS[settings.colorStyle] || RIPPLE_COLORS.blue;
+  }
+
   function resolveRippleColor(settings, normalizedPosition, opacity) {
-    const style = RIPPLE_COLORS[settings.colorStyle] || RIPPLE_COLORS.blue;
+    const style = getPulseLinesSettingsColor(settings);
 
     if (style.mode === "solid") {
       const [r, g, b] = style.color;

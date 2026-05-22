@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paraline Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Paraline</h2>
+            </div>
+            <ul class="nav-links">
+                <li><button class="nav-btn active" data-target="settings">Settings</button></li>
+                <li><button class="nav-btn" data-target="advanced">Advanced Settings</button></li>
+                <li><button class="nav-btn" data-target="about">About</button></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button class="sidebar-action-btn" id="btn-pause">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    Pause Visualizer
+                </button>
+                <button class="sidebar-action-btn" id="btn-reload">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    Reload Visualizer
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Settings Tab (Existing Options) -->
+            <section id="settings" class="tab-content active">
+                <header>
+                    <h1>Theme Settings</h1>
+                    <p>Standard presets. Changes are applied instantly.</p>
+                </header>
+
+                <div class="settings-group">
+                    <h3>Visualizer Mode</h3>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <select class="styled-select" id="theme-selector">
+                            <option value="ambientWave">Ambient Wave</option>
+                            <option value="reactiveBorder">Reactive Border</option>
+                            <option value="flowBorder">Flow Border</option>
+                            <option value="sideBars">Side Bars</option>
+                            <option value="flatRipples">Pulse Lines</option>
+                            <option value="dotParticles">Dot Particles</option>
+                            <option value="rippleFlow">Ripple Flow</option>
+                            <option value="snowBubbleParticles">Snow Particles</option>
+                            <option value="edgeCrystals">Edge Crystals</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Theme Properties</h3>
+                    <div id="dynamic-theme-settings">
+                        <!-- Populated dynamically by settings.js based on selected theme -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Advanced Settings Tab (Custom Options) -->
+            <section id="advanced" class="tab-content">
+                <header>
+                    <h1>Advanced Settings</h1>
+                    <p>Fine-tune the appearance with granular sliders and custom gradients.</p>
+                </header>
+
+                <div class="settings-group">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+                        <div>
+                            <h3>Custom Gradient Colors</h3>
+                            <p class="setting-desc" style="margin-bottom: 0;">Select your colors or load a saved preset.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="preset-selector" class="styled-select" style="min-width: 150px;">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="preset-save-container" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <input type="text" id="preset-name-input" class="styled-select" placeholder="New Preset Name" style="flex: 1; padding: 6px 10px; font-size: 14px; box-sizing: border-box;">
+                        <button id="btn-save-preset" class="btn-secondary" style="padding: 6px 12px; font-size: 14px; flex-shrink: 0;">Save New</button>
+                    </div>
+
+                    <div class="color-picker-container" id="gradient-colors" style="margin-top: 20px;">
+                        <div class="color-stop">
+                            <input type="color" class="color-input custom-trigger" id="color1">
+                            <label for="color1">Start</label>
+                        </div>
+                        <div class="color-stop">
+                            <input type="color" class="color-input custom-trigger" id="color2">
+                            <label for="color2">Middle</label>
+                        </div>
+                        <div class="color-stop">
+                            <input type="color" class="color-input custom-trigger" id="color3">
+                            <label for="color3">End</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group" id="advanced-sliders-container">
+                    <h3>Precise Controls (Sliders)</h3>
+
+                    <div class="slider-control" id="container-customThickness">
+                        <div class="slider-header">
+                            <label id="label-customThickness" for="customThickness">Thickness</label>
+                            <span class="slider-value" id="val-customThickness">4</span>
+                        </div>
+                        <input type="range" class="custom-trigger" id="customThickness" min="1" max="20" value="4">
+                    </div>
+
+                    <div class="slider-control" id="container-customGap" style="margin-top: 16px;">
+                        <div class="slider-header">
+                            <label id="label-customGap" for="customGap">Gap</label>
+                            <span class="slider-value" id="val-customGap">7</span>
+                        </div>
+                        <input type="range" class="custom-trigger" id="customGap" min="2" max="30" value="7">
+                    </div>
+
+                    <div class="slider-control" id="container-customSensitivity" style="margin-top: 16px;">
+                        <div class="slider-header">
+                            <label id="label-customSensitivity" for="customSensitivity">Sensitivity</label>
+                            <span class="slider-value" id="val-customSensitivity">3.0</span>
+                        </div>
+                        <input type="range" class="custom-trigger" id="customSensitivity" min="1" max="100" value="30">
+                    </div>
+
+                    <div class="slider-control" id="container-customSpeed" style="margin-top: 16px;">
+                        <div class="slider-header">
+                            <label id="label-customSpeed" for="customSpeed">Speed</label>
+                            <span class="slider-value" id="val-customSpeed">3.0</span>
+                        </div>
+                        <input type="range" class="custom-trigger" id="customSpeed" min="1" max="100" value="30">
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Tab -->
+            <section id="about" class="tab-content">
+                <header>
+                    <h1>About Paraline</h1>
+                </header>
+                <div class="settings-group"
+                    style="display: flex; justify-content: center; gap: 16px; padding: 40px 24px;">
+                    <button class="btn-secondary" id="btn-github">View GitHub Repository</button>
+                    <button class="btn-secondary" id="btn-landing">Open Landing Page</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="settings.js"></script>
+</body>
+
+</html>

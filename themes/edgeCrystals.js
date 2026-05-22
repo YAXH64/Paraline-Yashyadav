@@ -1,7 +1,8 @@
 (() => {
   const {
     clamp01,
-    getGlowMultiplier
+    getGlowMultiplier,
+    hexToRgb
   } = window.ParalineShared;
 
   const EDGE_CRYSTALS_COLORS = {
@@ -29,18 +30,25 @@
   let smoothedEnergy = 0.22;
 
   function getEdgeCrystalsAudioMultiplier(settings = {}) {
-    if (settings.flutterStyle === "soft") {
-      return 2.1;
-    }
+    let base = 3.1;
+    if (settings.flutterStyle === "soft") base = 2.1;
+    if (settings.flutterStyle === "energetic") base = 4.2;
 
-    if (settings.flutterStyle === "energetic") {
-      return 4.2;
+    if (settings.flutterStyle === "custom" && typeof settings.customSensitivity === "number") {
+      return base * (settings.customSensitivity / 30);
     }
-
-    return 3.1;
+    return base;
   }
 
   function getDensityProfile(settings = {}) {
+    if (settings.density === "custom" && typeof settings.customGap === "number") {
+      const count = Math.min(100, Math.max(5, Math.round(300 / settings.customGap)));
+      return {
+        countPerSide: count,
+        gap: settings.customGap
+      };
+    }
+
     if (settings.density === "low") {
       return {
         countPerSide: 18,
@@ -62,6 +70,20 @@
   }
 
   function getFlutterProfile(settings = {}) {
+    if (settings.flutterStyle === "custom") {
+      const sensScale = typeof settings.customSensitivity === "number" ? settings.customSensitivity / 30 : 1.0;
+      const speedScale = typeof settings.customSpeed === "number" ? settings.customSpeed / 30 : 1.0;
+      return {
+        baseLength: 10 * sensScale,
+        audioLengthBoost: 24 * sensScale,
+        flutterAmplitude: 3.8 * sensScale,
+        verticalFlutter: 2.1 * sensScale,
+        speed: 2.5 * speedScale,
+        lineWidth: 2.2,
+        activationBoost: 0.26 * sensScale
+      };
+    }
+
     if (settings.flutterStyle === "soft") {
       return {
         baseLength: 8,
@@ -195,7 +217,15 @@
     const tilt = stroke.tiltSeed * (0.5 + energy * 1.2);
     const startY = y - tilt;
     const endY = y + tilt;
-    const color = activation > 0.58 ? colors.primary : colors.secondary;
+    
+    let color;
+    if (colors.mode === "palette") {
+      const colorIndex = Math.floor(stroke.activationSeed * colors.colors.length);
+      color = colors.colors[colorIndex];
+    } else {
+      color = activation > 0.58 ? colors.primary : colors.secondary;
+    }
+    
     const strokeColor = rgba(color, opacity);
 
     context.beginPath();
@@ -206,6 +236,16 @@
     context.shadowColor = strokeColor;
     context.shadowBlur = (4.5 + activation * 7 + energy * 6) * glowMultiplier;
     context.stroke();
+  }
+
+  function getEdgeCrystalsSettingsColor(settings) {
+    if (settings.colorStyle === "custom" && Array.isArray(settings.customColors)) {
+      return {
+        mode: "palette",
+        colors: settings.customColors.map(hexToRgb)
+      };
+    }
+    return EDGE_CRYSTALS_COLORS[settings.colorStyle] || EDGE_CRYSTALS_COLORS.blue;
   }
 
   function drawEdgeCrystals(options) {
@@ -227,7 +267,7 @@
     const profile = getFlutterProfile(settings);
     profile.settings = settings;
     const glowMultiplier = getGlowMultiplier(settings.glowStrength);
-    const colors = EDGE_CRYSTALS_COLORS[settings.colorStyle] || EDGE_CRYSTALS_COLORS.blue;
+    const colors = getEdgeCrystalsSettingsColor(settings);
 
     context.globalAlpha = 1;
     context.lineCap = "round";
