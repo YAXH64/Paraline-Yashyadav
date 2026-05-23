@@ -40,6 +40,14 @@ function createSettingsWindow() {
 }
 
 const APP_VERSION = app.getVersion();
+
+function applyStartupSettings(launchOnStartup) {
+  app.setLoginItemSettings({
+    openAtLogin: launchOnStartup,
+    path: process.execPath,
+    args: app.isPackaged ? [] : [app.getAppPath()]
+  });
+}
 const PROJECT_URL = "https://github.com/SamXop123/Paraline";
 const LANDING_URL = "https://paraline.vercel.app";
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -157,6 +165,10 @@ function mergeSettingsPatch(currentSettings, patch) {
 
 function updateSettings(nextSettings) {
   visualizerSettings = settingsStore.save(mergeSettingsPatch(visualizerSettings, nextSettings));
+
+  if (nextSettings.launchOnStartup !== undefined) {
+    applyStartupSettings(visualizerSettings.launchOnStartup);
+  }
 
   sendVisualizerSettings();
   refreshTrayMenu();
@@ -1020,6 +1032,13 @@ function refreshTrayMenu() {
       click: () => reloadVisualizer()
     },
     {
+      label: "Launch on Startup",
+      type: "checkbox",
+      checked: !!visualizerSettings.launchOnStartup,
+      click: () => updateSettings({ launchOnStartup: !visualizerSettings.launchOnStartup })
+    },
+    { type: "separator" },
+    {
       label: "Visualizer Mode",
       submenu: buildMainThemeMenuItems()
     },
@@ -1094,6 +1113,7 @@ function createTray() {
 app.whenReady().then(() => {
   settingsStore = createSettingsStore(app.getPath("userData"));
   visualizerSettings = settingsStore.save(settingsStore.load());
+  applyStartupSettings(visualizerSettings.launchOnStartup);
 
   ipcMain.handle("audio-bridge-status", () => {
     if (!audioBridge) {
