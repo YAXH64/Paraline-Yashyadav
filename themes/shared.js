@@ -155,6 +155,33 @@
     return { h: h * 360, s: s * 100, l: l * 100 };
   }
 
+  function applyOptimizedShadow(context, color, blurRadius, performanceMode = 'balanced') {
+    if (performanceMode === 'performance') {
+      // Disable shadows in performance mode
+      context.shadowBlur = 0;
+      context.shadowColor = 'transparent';
+      return;
+    }
+
+    if (performanceMode === 'balanced') {
+      // Reduce shadow blur by 40% in balanced mode
+      blurRadius *= 0.6;
+    }
+
+    // Apply shadow directly for high quality mode
+    context.shadowBlur = blurRadius;
+    context.shadowColor = color;
+  }
+
+  function getPerformanceMultiplier(performanceMode) {
+    switch (performanceMode) {
+      case 'performance': return 0.4;
+      case 'balanced': return 0.7;
+      case 'quality': return 1.0;
+      default: return 1.0;
+    }
+  }
+
   window.ParalineShared = {
     TRANSPARENT_HAZE,
     clamp01,
@@ -165,6 +192,8 @@
     drawSoftFill,
     computeWrappedDistance,
     hexToRgb,
-    hexToHsl
+    hexToHsl,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   };
 })();

@@ -1,6 +1,8 @@
 (() => {
   const {
-    clamp01
+    clamp01,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const RIPPLE_FLOW_COLORS = {
@@ -114,14 +116,15 @@
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   }
 
-  function drawVerticalSegment(context, x, y, length, color, opacity, profile, breakFactor) {
+  function drawVerticalSegment(context, x, y, length, color, opacity, profile, breakFactor, performanceMode = 'balanced') {
     const halfLength = length * 0.5;
     const gap = length * profile.breakAmount * breakFactor;
 
     context.strokeStyle = rgba(color, opacity);
-    context.shadowColor = rgba(color, opacity);
     context.lineWidth = profile.lineWidth;
     context.lineCap = "round";
+
+    applyOptimizedShadow(context, rgba(color, opacity), profile.glow * getPerformanceMultiplier(performanceMode), performanceMode);
 
     context.beginPath();
     context.moveTo(x, y - halfLength);
@@ -131,14 +134,15 @@
     context.stroke();
   }
 
-  function drawHorizontalSegment(context, x, y, length, color, opacity, profile, breakFactor) {
+  function drawHorizontalSegment(context, x, y, length, color, opacity, profile, breakFactor, performanceMode = 'balanced') {
     const halfLength = length * 0.5;
     const gap = length * profile.breakAmount * breakFactor;
 
     context.strokeStyle = rgba(color, opacity);
-    context.shadowColor = rgba(color, opacity);
     context.lineWidth = profile.lineWidth;
     context.lineCap = "round";
+
+    applyOptimizedShadow(context, rgba(color, opacity), profile.glow * getPerformanceMultiplier(performanceMode), performanceMode);
 
     context.beginPath();
     context.moveTo(x - halfLength, y);
@@ -148,26 +152,24 @@
     context.stroke();
   }
 
-  function drawSideOrigin(context, width, height, color, profile, energy) {
+  function drawSideOrigin(context, width, height, color, profile, energy, performanceMode = 'balanced') {
     const centerY = height * 0.5;
     const opacity = clamp01(0.18 + energy * 0.32);
     const sourceLength = 8 + energy * 8;
 
-    context.shadowBlur = profile.glow * (0.55 + energy);
-    drawVerticalSegment(context, 2.5, centerY, sourceLength, color, opacity, profile, 0);
-    drawVerticalSegment(context, width - 2.5, centerY, sourceLength, color, opacity, profile, 0);
+    drawVerticalSegment(context, 2.5, centerY, sourceLength, color, opacity, profile, 0, performanceMode);
+    drawVerticalSegment(context, width - 2.5, centerY, sourceLength, color, opacity, profile, 0, performanceMode);
   }
 
-function drawBottomOrigin(context, width, height, color, profile, energy) {
+function drawBottomOrigin(context, width, height, color, profile, energy, performanceMode = 'balanced') {
     const centerX = width * 0.5;
     const opacity = clamp01(0.18 + energy * 0.32);
     const sourceLength = 10 + energy * 10;
 
-    context.shadowBlur = profile.glow * (0.55 + energy);
-    drawHorizontalSegment(context, centerX, height - 7, sourceLength, color, opacity, profile, 0);
+    drawHorizontalSegment(context, centerX, height - 7, sourceLength, color, opacity, profile, 0, performanceMode);
   }
 
-  function drawSideRipples(context, width, height, profile, color) {
+  function drawSideRipples(context, width, height, profile, color, performanceMode = 'balanced') {
     const centerY = height * 0.5;
     const maxDistance = centerY + profile.segmentLength;
     const leftX = 2.5;
@@ -183,24 +185,22 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
         continue;
       }
 
-      context.shadowBlur = profile.glow * (0.7 + smoothedEnergy * 1.2) * fade;
-
       const upperY = centerY - front.distance;
       const lowerY = centerY + front.distance;
 
       if (upperY > -profile.segmentLength) {
-        drawVerticalSegment(context, leftX, upperY, length, color, opacity, profile, breakFactor);
-        drawVerticalSegment(context, rightX, upperY, length, color, opacity, profile, breakFactor);
+        drawVerticalSegment(context, leftX, upperY, length, color, opacity, profile, breakFactor, performanceMode);
+        drawVerticalSegment(context, rightX, upperY, length, color, opacity, profile, breakFactor, performanceMode);
       }
 
       if (lowerY < height + profile.segmentLength) {
-        drawVerticalSegment(context, leftX, lowerY, length, color, opacity, profile, breakFactor);
-        drawVerticalSegment(context, rightX, lowerY, length, color, opacity, profile, breakFactor);
+        drawVerticalSegment(context, leftX, lowerY, length, color, opacity, profile, breakFactor, performanceMode);
+        drawVerticalSegment(context, rightX, lowerY, length, color, opacity, profile, breakFactor, performanceMode);
       }
     }
   }
 
-  function drawBottomRipples(context, width, height, time, profile, color) {
+  function drawBottomRipples(context, width, height, time, profile, color, performanceMode = 'balanced') {
     const centerX = width * 0.5;
     const maxDistance = centerX + profile.segmentLength;
     const baseY = height - 7;
@@ -220,14 +220,12 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
       const leftX = centerX - front.distance;
       const rightX = centerX + front.distance;
 
-      context.shadowBlur = profile.glow * (0.72 + smoothedEnergy * 1.15) * fade;
-
       if (leftX > -profile.segmentLength) {
-        drawHorizontalSegment(context, leftX, y, length, color, opacity, profile, breakFactor);
+        drawHorizontalSegment(context, leftX, y, length, color, opacity, profile, breakFactor, performanceMode);
       }
 
       if (rightX < width + profile.segmentLength) {
-        drawHorizontalSegment(context, rightX, y, length, color, opacity, profile, breakFactor);
+        drawHorizontalSegment(context, rightX, y, length, color, opacity, profile, breakFactor, performanceMode);
       }
     }
   }
@@ -257,7 +255,8 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     ensureThemeState(width, height, settings);
@@ -280,11 +279,11 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
     context.shadowBlur = 0;
 
     if (settings.mode === "flatRipples") {
-      drawBottomOrigin(context, width, height, color, profile, smoothedEnergy);
-      drawBottomRipples(context, width, height, time, profile, color);
+      drawBottomOrigin(context, width, height, color, profile, smoothedEnergy, performanceMode);
+      drawBottomRipples(context, width, height, time, profile, color, performanceMode);
     } else {
-      drawSideOrigin(context, width, height, color, profile, smoothedEnergy);
-      drawSideRipples(context, width, height, profile, color);
+      drawSideOrigin(context, width, height, color, profile, smoothedEnergy, performanceMode);
+      drawSideRipples(context, width, height, profile, color, performanceMode);
     }
 
     context.shadowBlur = 0;

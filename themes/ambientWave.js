@@ -74,7 +74,8 @@
       smoothedLevel,
       latestSource,
       edgeGradient,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     const ambientTheme = getAmbientTonePalette(settings);

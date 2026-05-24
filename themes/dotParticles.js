@@ -1,7 +1,9 @@
 (() => {
   const {
     clamp01,
-    getGlowMultiplier
+    getGlowMultiplier,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const PARTICLE_COLORS = [
@@ -194,15 +196,17 @@
     return particle.counterFlow ? -globalDirection : globalDirection;
   }
 
-  function drawDot(context, x, y, radius, color, opacity, glowBlur) {
+  function drawDot(context, x, y, radius, color, opacity, glowBlur, performanceMode = 'balanced') {
     const [r, g, b] = color;
     const fillColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
 
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2);
     context.fillStyle = fillColor;
-    context.shadowColor = fillColor;
-    context.shadowBlur = glowBlur;
+    
+    // Apply optimized shadow
+    applyOptimizedShadow(context, fillColor, glowBlur, performanceMode);
+    
     context.fill();
   }
 
@@ -213,7 +217,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     ensureParticles(width, height, settings);
@@ -227,7 +232,7 @@
     const speed = profile.baseSpeed + energy * profile.audioBoost + beatPulse * 36;
     const jitterAmount = profile.jitter * (0.46 + energy * 1.18 + beatPulse * 0.55);
     const baseOpacity = 0.42 + energy * 0.32 + beatPulse * 0.14;
-    const glowBlur = (3.5 + energy * 6.5 + beatPulse * 3.5) * glowScale;
+    const glowBlur = (3.5 + energy * 6.5 + beatPulse * 3.5) * glowScale * getPerformanceMultiplier(performanceMode);
 
     context.globalAlpha = 1;
     context.shadowBlur = 0;
@@ -252,7 +257,7 @@
       const x = point.x + point.normalX * jitter;
       const y = point.y + point.normalY * jitter;
 
-      drawDot(context, x, y, radius, PARTICLE_COLORS[particle.colorIndex], opacity, glowBlur);
+      drawDot(context, x, y, radius, PARTICLE_COLORS[particle.colorIndex], opacity, glowBlur, performanceMode);
     }
 
     beatPulse *= Math.pow(0.14, delta);

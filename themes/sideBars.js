@@ -1,7 +1,9 @@
 (() => {
   const {
     clamp01,
-    hexToRgb
+    hexToRgb,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const SIDE_BARS_STYLES = {
@@ -143,7 +145,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     const style = getSideBarsSettingsColor(settings);
@@ -155,7 +158,7 @@
     const step = barHeight + gap;
     const usableHeight = height + edgeOverscan * 2;
     const count = Math.max(12, Math.ceil(usableHeight / step) + 1);
-    const glowBlur = 5 + smoothedLevel * 12 + barHeight * 0.4;
+    const glowBlur = (5 + smoothedLevel * 12 + barHeight * 0.4) * getPerformanceMultiplier(performanceMode);
     const baseOpacity = 0.34 + smoothedLevel * 0.18;
 
     context.globalAlpha = 1;
@@ -178,8 +181,7 @@
       const fillColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity})`;
 
       context.fillStyle = fillColor;
-      context.shadowColor = fillColor;
-      context.shadowBlur = glowBlur * (0.4 + audioWeight * 0.45);
+      applyOptimizedShadow(context, fillColor, glowBlur * (0.4 + audioWeight * 0.45), performanceMode);
       drawRoundedBar(context, leftX, y, barLength, barHeight);
       drawRoundedBar(context, rightX, y, barLength, barHeight);
     }

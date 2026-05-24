@@ -1,7 +1,9 @@
 (() => {
   const {
     clamp01,
-    hexToRgb
+    hexToRgb,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const RIPPLE_COLORS = {
@@ -208,7 +210,7 @@
     return Math.exp(-(delta * delta) / (2 * frontWidth * frontWidth));
   }
 
-  function drawVerticalRippleLine(context, xBase, height, time, smoothedLevel, profile, color, flip = 1) {
+  function drawVerticalRippleLine(context, xBase, height, time, smoothedLevel, profile, color, flip = 1, performanceMode = 'balanced') {
     const centerY = height * 0.5;
     const maxDistance = centerY + profile.frontWidth * 1.2;
     const frontDistance = getWrappedFrontDistance(profile.travelDistance, maxDistance);
@@ -238,12 +240,11 @@
 
     context.lineWidth = profile.lineWidth;
     context.strokeStyle = color;
-    context.shadowColor = color;
-    context.shadowBlur = profile.glow * (0.9 + smoothedLevel * 0.85);
+    applyOptimizedShadow(context, color, profile.glow * (0.9 + smoothedLevel * 0.85) * getPerformanceMultiplier(performanceMode), performanceMode);
     context.stroke();
   }
 
-  function drawHorizontalRippleLine(context, width, yBase, time, smoothedLevel, profile, color) {
+  function drawHorizontalRippleLine(context, width, yBase, time, smoothedLevel, profile, color, performanceMode = 'balanced') {
     const centerX = width * 0.5;
     const maxDistance = centerX + profile.frontWidth * 1.2;
     const frontDistance = getWrappedFrontDistance(profile.travelDistance, maxDistance);
@@ -273,8 +274,7 @@
 
     context.lineWidth = profile.lineWidth;
     context.strokeStyle = color;
-    context.shadowColor = color;
-    context.shadowBlur = profile.glow * (0.95 + smoothedLevel * 0.9);
+    applyOptimizedShadow(context, color, profile.glow * (0.95 + smoothedLevel * 0.9) * getPerformanceMultiplier(performanceMode), performanceMode);
     context.stroke();
   }
 
@@ -285,7 +285,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
     const profile = getRippleProfile(settings);
     const speedProfile = getSpeedProfile(settings);
@@ -315,8 +316,8 @@
       trailGap: profile.trailGap * 1.12
     };
 
-    drawVerticalRippleLine(context, leftBase, height, time + 0.14, motion.level, echoProfile, echoColor, 1);
-    drawVerticalRippleLine(context, rightBase, height, time + 0.14, motion.level, echoProfile, echoColor, -1);
+    drawVerticalRippleLine(context, leftBase, height, time + 0.14, motion.level, echoProfile, echoColor, 1, performanceMode);
+    drawVerticalRippleLine(context, rightBase, height, time + 0.14, motion.level, echoProfile, echoColor, -1, performanceMode);
   }
 
   function drawBottomRipples(options) {
@@ -326,7 +327,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
     const profile = getRippleProfile(settings);
     const speedProfile = getSpeedProfile(settings);
@@ -354,7 +356,7 @@
       trailGap: profile.trailGap * 1.1
     };
 
-    drawHorizontalRippleLine(context, width, yBase, time + 0.14, motion.level, echoProfile, echoColor);
+    drawHorizontalRippleLine(context, width, yBase, time + 0.14, motion.level, echoProfile, echoColor, performanceMode);
   }
 
   function drawFlatRipples(options) {
@@ -364,7 +366,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     context.globalAlpha = 1;
@@ -377,7 +380,8 @@
         height,
         time,
         smoothedLevel,
-        settings
+        settings,
+        performanceMode
       });
       return;
     }
@@ -388,7 +392,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode
     });
   }
 

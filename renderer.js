@@ -86,6 +86,7 @@ let edgeGradient;
 let flowTravelDistance = 0;
 let visualizerState = {
   selectedTheme: "ambientWave",
+  performanceMode: "balanced",
   ambientWave: {
     tone: "blue",
     sensitivity: "medium",
@@ -341,6 +342,11 @@ function updateAudioLevel(now) {
 function renderFrame(now) {
   requestAnimationFrame(renderFrame);
 
+  if (visualizerState.hidden) {
+    context.clearRect(0, 0, width, height);
+    return;
+  }
+
   let activeFrameInterval = FRAME_INTERVAL;
 
   if (visualizerState.selectedTheme === "flowBorder") {
@@ -383,7 +389,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getReactiveBorderSettings()
+      settings: getReactiveBorderSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "flowBorder") {
     drawFlowBorder({
@@ -392,7 +399,8 @@ function renderFrame(now) {
       height,
       smoothedLevel,
       flowTravelDistance,
-      settings: getFlowBorderSettings()
+      settings: getFlowBorderSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "sideBars") {
     drawSideBars({
@@ -401,7 +409,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getSideBarsSettings()
+      settings: getSideBarsSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "flatRipples") {
     drawFlatRipples({
@@ -410,7 +419,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getFlatRipplesSettings()
+      settings: getFlatRipplesSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "dotParticles") {
     drawDotParticles({
@@ -419,7 +429,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getDotParticlesSettings()
+      settings: getDotParticlesSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "rippleFlow") {
     drawRippleFlow({
@@ -428,7 +439,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getRippleFlowSettings()
+      settings: getRippleFlowSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
     drawSnowBubbleParticles({
@@ -437,7 +449,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getSnowBubbleParticlesSettings()
+      settings: getSnowBubbleParticlesSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "edgeCrystals") {
     drawEdgeCrystals({
@@ -446,7 +459,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getEdgeCrystalsSettings()
+      settings: getEdgeCrystalsSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "sideBraids") {
     drawSideBraids({
@@ -455,7 +469,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getSideBraidsSettings()
+      settings: getSideBraidsSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else {
     drawAmbientWave({
@@ -466,7 +481,8 @@ function renderFrame(now) {
       smoothedLevel,
       latestSource,
       edgeGradient,
-      settings: getAmbientWaveSettings()
+      settings: getAmbientWaveSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   }
 
@@ -479,6 +495,7 @@ function applySettings(nextSettings) {
   visualizerState = {
     ...visualizerState,
     ...nextSettings,
+    performanceMode: nextSettings.performanceMode || visualizerState.performanceMode,
     ambientWave: {
       ...visualizerState.ambientWave,
       ...(nextSettings?.ambientWave || {})
@@ -1056,12 +1073,15 @@ const ICONS = {
   globe: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
   github: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>`,
   quit: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`,
-  chevron: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`
+  chevron: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+  eye: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeOff: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
 };
 
 function getContextMenuStructure() {
   const currentTheme = visualizerState.selectedTheme;
   const isPaused = visualizerState.paused;
+  const isHidden = visualizerState.hidden;
   const version = visualizerState.version || '1.1.0';
   const helperConnected = visualizerState.helperConnected || (latestSource === 'helper');
 
@@ -1074,6 +1094,15 @@ function getContextMenuStructure() {
       icon: ICONS.waveform
     },
     { type: 'divider' },
+    {
+      type: 'item',
+      label: 'Open Settings',
+      icon: ICONS.settings,
+      action: () => {
+        window.visualizerSettings.action('open-settings');
+      }
+    },
+    { type: 'divider' },
     
     {
       type: 'item',
@@ -1081,6 +1110,14 @@ function getContextMenuStructure() {
       icon: isPaused ? ICONS.play : ICONS.pause,
       action: () => {
         window.visualizerSettings.action('toggle-paused');
+      }
+    },
+    {
+      type: 'item',
+      label: isHidden ? 'Show Visualizer' : 'Hide Visualizer',
+      icon: isHidden ? ICONS.eye : ICONS.eyeOff,
+      action: () => {
+        window.visualizerSettings.action('toggle-hide');
       }
     },
     {

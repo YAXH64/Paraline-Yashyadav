@@ -2,7 +2,9 @@
   const {
     clamp01,
     getGlowMultiplier,
-    hexToRgb
+    hexToRgb,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   // ========================================
@@ -417,7 +419,7 @@
   // Crossing illusion comes from time-varying z-order of
   // complete paths + depth layering.
 
-  function drawBraidSide(context, height, time, audio, motion, glow, palette, lineWidth, edgeBaseX, flipX, flowDir, stringCount) {
+  function drawBraidSide(context, height, time, audio, motion, glow, palette, lineWidth, edgeBaseX, flipX, flowDir, stringCount, performanceMode = 'balanced') {
     const colors = palette.colors;
 
     // Compute all paths with depth layering
@@ -433,7 +435,7 @@
       );
     }
 
-    const baseBlur = glow.baseBlur + audio.level * glow.audioBlurBoost;
+    const baseBlur = (glow.baseBlur + audio.level * glow.audioBlurBoost) * getPerformanceMultiplier(performanceMode);
     const baseAlpha = clamp01(glow.baseAlpha + audio.level * glow.audioAlphaBoost);
 
     // ── Compute draw order for crossing illusion ──
@@ -475,8 +477,7 @@
 
       context.lineWidth = lineWidth * dm.widthMult * 2.8;
       context.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha * 0.08})`;
-      context.shadowColor = `rgba(${r}, ${g}, ${b}, ${alpha * 0.2})`;
-      context.shadowBlur = blur * 1.4;
+      applyOptimizedShadow(context, `rgba(${r}, ${g}, ${b}, ${alpha * 0.2})`, blur * 1.4, performanceMode);
       context.globalAlpha = 1;
       context.lineCap = "round";
       context.lineJoin = "round";
@@ -495,8 +496,7 @@
 
       context.lineWidth = lineWidth * dm.widthMult;
       context.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      context.shadowColor = `rgba(${r}, ${g}, ${b}, ${alpha * 0.75})`;
-      context.shadowBlur = blur;
+      applyOptimizedShadow(context, `rgba(${r}, ${g}, ${b}, ${alpha * 0.75})`, blur, performanceMode);
       context.globalAlpha = 1;
       context.lineCap = "round";
       context.lineJoin = "round";
@@ -539,7 +539,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     const motion = getMotionProfile(settings);
@@ -567,13 +568,13 @@
     // Left side
     drawBraidSide(
       context, height, time, audio, motion, glow, palette,
-      lineWidth, leftBaseX, 1, leftFlowDir, stringCount
+      lineWidth, leftBaseX, 1, leftFlowDir, stringCount, performanceMode
     );
 
     // Right side
     drawBraidSide(
       context, height, time, audio, motion, glow, palette,
-      lineWidth, rightBaseX, -1, rightFlowDir, stringCount
+      lineWidth, rightBaseX, -1, rightFlowDir, stringCount, performanceMode
     );
 
     context.globalAlpha = 1;

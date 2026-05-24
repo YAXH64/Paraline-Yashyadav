@@ -4,7 +4,9 @@
     computeWrappedDistance,
     getGlowMultiplier,
     resolveAnimatedColor,
-    hexToHsl
+    hexToHsl,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const RAINBOW_BORDER_INSET = 0;
@@ -96,7 +98,8 @@
       glowBlur,
       glowMultiplier,
       segmentLength,
-      colorStyle
+      colorStyle,
+      performanceMode = 'balanced'
     } = options;
 
     const edgeLength = Math.hypot(x2 - x1, y2 - y1);
@@ -104,6 +107,7 @@
     const leadDistance = ((travelDistance % perimeter) + perimeter) % perimeter;
     const oppositeLeadDistance = (leadDistance + perimeter * 0.5) % perimeter;
     const emphasisLength = perimeter * 0.3;
+    const perfMultiplier = getPerformanceMultiplier(performanceMode);
 
     for (let index = 0; index < segmentCount; index++) {
       const startT = index / segmentCount;
@@ -131,8 +135,10 @@
       context.lineTo(ex, ey);
       context.strokeStyle = color;
       context.lineWidth = thickness + trailStrength * (0.7 + glowMultiplier * 0.2);
-      context.shadowBlur = glowBlur * (0.45 + trailStrength * (0.85 + glowMultiplier * 0.2));
-      context.shadowColor = color;
+      
+      const optimizedBlur = glowBlur * (0.45 + trailStrength * (0.85 + glowMultiplier * 0.2)) * perfMultiplier;
+      applyOptimizedShadow(context, color, optimizedBlur, performanceMode);
+      
       context.stroke();
     }
   }
@@ -144,7 +150,8 @@
       height,
       smoothedLevel,
       flowTravelDistance,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     const colorStyle = getFlowBorderStyle(settings);
@@ -167,10 +174,10 @@
     context.lineCap = "round";
     context.lineJoin = "round";
 
-    drawFlowBorderEdge(context, { x1: left, y1: top, x2: right, y2: top, startDistance: 0, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle });
-    drawFlowBorderEdge(context, { x1: right, y1: top, x2: right, y2: bottom, startDistance: horizontal, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle });
-    drawFlowBorderEdge(context, { x1: right, y1: bottom, x2: left, y2: bottom, startDistance: horizontal + vertical, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle });
-    drawFlowBorderEdge(context, { x1: left, y1: bottom, x2: left, y2: top, startDistance: horizontal * 2 + vertical, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle });
+    drawFlowBorderEdge(context, { x1: left, y1: top, x2: right, y2: top, startDistance: 0, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle, performanceMode });
+    drawFlowBorderEdge(context, { x1: right, y1: top, x2: right, y2: bottom, startDistance: horizontal, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle, performanceMode });
+    drawFlowBorderEdge(context, { x1: right, y1: bottom, x2: left, y2: bottom, startDistance: horizontal + vertical, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle, performanceMode });
+    drawFlowBorderEdge(context, { x1: left, y1: bottom, x2: left, y2: top, startDistance: horizontal * 2 + vertical, perimeter, travelDistance, direction, thickness, glowBlur, glowMultiplier, segmentLength, colorStyle, performanceMode });
   }
 
   window.ParalineFlowBorder = {
