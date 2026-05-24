@@ -86,6 +86,7 @@ let edgeGradient;
 let flowTravelDistance = 0;
 let visualizerState = {
   selectedTheme: "ambientWave",
+  performanceMode: "balanced",
   ambientWave: {
     tone: "blue",
     sensitivity: "medium",
@@ -388,7 +389,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getReactiveBorderSettings()
+      settings: getReactiveBorderSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "flowBorder") {
     drawFlowBorder({
@@ -397,7 +399,8 @@ function renderFrame(now) {
       height,
       smoothedLevel,
       flowTravelDistance,
-      settings: getFlowBorderSettings()
+      settings: getFlowBorderSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "sideBars") {
     drawSideBars({
@@ -406,7 +409,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getSideBarsSettings()
+      settings: getSideBarsSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "flatRipples") {
     drawFlatRipples({
@@ -415,7 +419,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getFlatRipplesSettings()
+      settings: getFlatRipplesSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "dotParticles") {
     drawDotParticles({
@@ -424,7 +429,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getDotParticlesSettings()
+      settings: getDotParticlesSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "rippleFlow") {
     drawRippleFlow({
@@ -433,7 +439,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getRippleFlowSettings()
+      settings: getRippleFlowSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
     drawSnowBubbleParticles({
@@ -442,7 +449,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getSnowBubbleParticlesSettings()
+      settings: getSnowBubbleParticlesSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "edgeCrystals") {
     drawEdgeCrystals({
@@ -451,7 +459,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getEdgeCrystalsSettings()
+      settings: getEdgeCrystalsSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else if (visualizerState.selectedTheme === "sideBraids") {
     drawSideBraids({
@@ -460,7 +469,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getSideBraidsSettings()
+      settings: getSideBraidsSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else {
     drawAmbientWave({
@@ -471,7 +481,8 @@ function renderFrame(now) {
       smoothedLevel,
       latestSource,
       edgeGradient,
-      settings: getAmbientWaveSettings()
+      settings: getAmbientWaveSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   }
 
@@ -484,6 +495,7 @@ function applySettings(nextSettings) {
   visualizerState = {
     ...visualizerState,
     ...nextSettings,
+    performanceMode: nextSettings.performanceMode || visualizerState.performanceMode,
     ambientWave: {
       ...visualizerState.ambientWave,
       ...(nextSettings?.ambientWave || {})

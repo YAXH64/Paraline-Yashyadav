@@ -1,7 +1,9 @@
 (() => {
   const {
     clamp01,
-    getGlowMultiplier
+    getGlowMultiplier,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const PARTICLE_COLORS = {
@@ -210,7 +212,7 @@
     });
   }
 
-  function drawSnowParticle(context, particle, energy, glowMultiplier) {
+  function drawSnowParticle(context, particle, energy, glowMultiplier, performanceMode = 'balanced') {
     const { fills, glows } = PARTICLE_COLORS;
     const fill = fills[particle.colorIndex % fills.length];
     const glow = glows[particle.colorIndex % glows.length];
@@ -223,8 +225,7 @@
     context.beginPath();
     context.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
     context.fillStyle = fillColor;
-    context.shadowColor = glowColor;
-    context.shadowBlur = (5 + radius * 2.4 + energy * 3.5) * glowMultiplier;
+    applyOptimizedShadow(context, glowColor, (5 + radius * 2.4 + energy * 3.5) * glowMultiplier * getPerformanceMultiplier(performanceMode), performanceMode);
     context.fill();
   }
 
@@ -235,7 +236,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     ensureThemeState(width, height, settings);
@@ -253,7 +255,7 @@
     context.lineCap = "round";
 
     for (const particle of particles) {
-      drawSnowParticle(context, particle, smoothedEnergy, glowMultiplier);
+      drawSnowParticle(context, particle, smoothedEnergy, glowMultiplier, performanceMode);
     }
 
     context.shadowBlur = 0;

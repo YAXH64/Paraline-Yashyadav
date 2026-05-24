@@ -2,7 +2,9 @@
   const {
     getGlowMultiplier,
     resolveAnimatedColor,
-    hexToHsl
+    hexToHsl,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const RAINBOW_BORDER_INSET = 0;
@@ -59,11 +61,17 @@
       hueOffset,
       thickness,
       glowBlur,
-      opacity
+      opacity,
+      performanceMode = 'balanced'
     } = options;
 
     const edgeLength = Math.hypot(x2 - x1, y2 - y1);
     const segmentCount = Math.max(1, Math.ceil(edgeLength / RAINBOW_SEGMENT_LENGTH));
+    const perfMultiplier = getPerformanceMultiplier(performanceMode);
+    const optimizedBlur = glowBlur * perfMultiplier;
+
+    // Apply optimized shadow once for the entire edge
+    applyOptimizedShadow(context, colorStyle.mode === 'rainbow' ? 'hsla(180, 92%, 64%, 1)' : `hsla(${colorStyle.hueA}, 92%, 66%, 1)`, optimizedBlur, performanceMode);
 
     for (let index = 0; index < segmentCount; index++) {
       const startT = index / segmentCount;
@@ -80,8 +88,6 @@
       context.lineTo(ex, ey);
       context.strokeStyle = color;
       context.lineWidth = thickness;
-      context.shadowBlur = glowBlur;
-      context.shadowColor = color;
       context.stroke();
     }
   }
@@ -93,7 +99,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     const reactiveStyle = getReactiveColorStyle(settings);
@@ -126,10 +133,10 @@
     context.lineWidth = thickness + 0.8;
     context.strokeRect(left, top, horizontal, vertical);
 
-    drawReactiveBorderEdge(context, { x1: left, y1: top, x2: right, y2: top, startDistance: 0, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity });
-    drawReactiveBorderEdge(context, { x1: right, y1: top, x2: right, y2: bottom, startDistance: horizontal, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity });
-    drawReactiveBorderEdge(context, { x1: right, y1: bottom, x2: left, y2: bottom, startDistance: horizontal + vertical, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity });
-    drawReactiveBorderEdge(context, { x1: left, y1: bottom, x2: left, y2: top, startDistance: horizontal * 2 + vertical, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity });
+    drawReactiveBorderEdge(context, { x1: left, y1: top, x2: right, y2: top, startDistance: 0, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity, performanceMode });
+    drawReactiveBorderEdge(context, { x1: right, y1: top, x2: right, y2: bottom, startDistance: horizontal, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity, performanceMode });
+    drawReactiveBorderEdge(context, { x1: right, y1: bottom, x2: left, y2: bottom, startDistance: horizontal + vertical, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity, performanceMode });
+    drawReactiveBorderEdge(context, { x1: left, y1: bottom, x2: left, y2: top, startDistance: horizontal * 2 + vertical, perimeter, colorStyle: reactiveStyle, hueOffset, thickness, glowBlur, opacity, performanceMode });
   }
 
   window.ParalineReactiveBorder = {

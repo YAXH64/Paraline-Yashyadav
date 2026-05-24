@@ -191,6 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const performanceModeSelector = document.getElementById('performance-mode-selector');
+    performanceModeSelector.addEventListener('change', (e) => {
+        if (window.visualizerSettings) {
+            window.visualizerSettings.update({
+                performanceMode: e.target.value
+            });
+        }
+    });
+
     // ----------------------------------------
     // PRESET LOGIC (ADVANCED TAB)
     // ----------------------------------------
@@ -419,6 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderThemeSettings(settings.selectedTheme);
             } else {
                 renderThemeSettings("ambientWave");
+            }
+            
+            if (settings.performanceMode) {
+                performanceModeSelector.value = settings.performanceMode;
             }
             
             // set custom variables into UI if they exist globally or on the active theme

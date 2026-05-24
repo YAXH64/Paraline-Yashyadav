@@ -4,6 +4,7 @@ const path = require("path");
 const DEFAULT_SETTINGS = Object.freeze({
   launchOnStartup: false,
   selectedTheme: "ambientWave",
+  performanceMode: "balanced",
   ambientWave: Object.freeze({
     tone: "blue",
     sensitivity: "medium",
@@ -81,6 +82,7 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 
 const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"]);
+const VALID_PERFORMANCE_MODES = new Set(["performance", "balanced", "quality"]);
 const VALID_AMBIENT_TONES = new Set(["blue", "purple", "warm", "custom"]);
 const VALID_LEVELS = new Set(["low", "medium", "high", "custom"]);
 const VALID_EDGE_MODES = new Set(["top", "bottom", "both"]);
@@ -116,6 +118,7 @@ function createDefaultSettings() {
   return {
     launchOnStartup: DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: DEFAULT_SETTINGS.selectedTheme,
+    performanceMode: DEFAULT_SETTINGS.performanceMode,
     ambientWave: { ...DEFAULT_SETTINGS.ambientWave },
     reactiveBorder: { ...DEFAULT_SETTINGS.reactiveBorder },
     flowBorder: { ...DEFAULT_SETTINGS.flowBorder },
@@ -346,6 +349,7 @@ function sanitizeSettings(input = {}) {
   return {
     launchOnStartup: typeof source.launchOnStartup === "boolean" ? source.launchOnStartup : DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: pick(source.selectedTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.selectedTheme),
+    performanceMode: pick(source.performanceMode, VALID_PERFORMANCE_MODES, DEFAULT_SETTINGS.performanceMode),
     ambientWave: sanitizeAmbientWave(source.ambientWave),
     reactiveBorder: sanitizeReactiveBorder(source.reactiveBorder),
     flowBorder: sanitizeFlowBorder(source.flowBorder),

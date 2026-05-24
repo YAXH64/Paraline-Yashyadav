@@ -2,7 +2,9 @@
   const {
     clamp01,
     getGlowMultiplier,
-    hexToRgb
+    hexToRgb,
+    applyOptimizedShadow,
+    getPerformanceMultiplier
   } = window.ParalineShared;
 
   const EDGE_CRYSTALS_COLORS = {
@@ -192,7 +194,7 @@
     return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${opacity})`;
   }
 
-  function drawStroke(context, stroke, width, time, energy, profile, colors, glowMultiplier) {
+  function drawStroke(context, stroke, width, time, energy, profile, colors, glowMultiplier, performanceMode = 'balanced') {
     if (!shouldDrawSide(profile.settings, stroke.side)) {
       return;
     }
@@ -233,8 +235,7 @@
     context.lineTo(endX, endY);
     context.strokeStyle = strokeColor;
     context.lineWidth = profile.lineWidth;
-    context.shadowColor = strokeColor;
-    context.shadowBlur = (4.5 + activation * 7 + energy * 6) * glowMultiplier;
+    applyOptimizedShadow(context, strokeColor, (4.5 + activation * 7 + energy * 6) * glowMultiplier * getPerformanceMultiplier(performanceMode), performanceMode);
     context.stroke();
   }
 
@@ -255,7 +256,8 @@
       height,
       time,
       smoothedLevel,
-      settings
+      settings,
+      performanceMode = 'balanced'
     } = options;
 
     ensureThemeState(width, height, settings);
@@ -273,7 +275,7 @@
     context.lineCap = "round";
 
     for (const stroke of strokes) {
-      drawStroke(context, stroke, width, time, smoothedEnergy, profile, colors, glowMultiplier);
+      drawStroke(context, stroke, width, time, smoothedEnergy, profile, colors, glowMultiplier, performanceMode);
     }
 
     context.shadowBlur = 0;
