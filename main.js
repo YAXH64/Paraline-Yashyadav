@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, dia
 const path = require("path");
 const fs = require("fs");
 const { createAudioBridge } = require("./audioBridge");
-const { createDefaultSettings, createSettingsStore, createThemeDefaults, sanitizeAmbientWave, sanitizeReactiveBorder, sanitizeFlowBorder, sanitizeSideBars, sanitizeFlatRipples, sanitizeDotParticles, sanitizeRippleFlow, sanitizeSnowBubbleParticles, sanitizeEdgeCrystals, sanitizeSideBraids } = require("./settingsStore");
+const { createDefaultSettings, createSettingsStore, createThemeDefaults, sanitizeSettings } = require("./settingsStore");
 
 let overlayWindow;
 let lastBridgeMode = null;
@@ -1322,18 +1322,7 @@ app.whenReady().then(() => {
       }
 
       // Sanitize the imported profile to prevent prototype pollution and arbitrary property injection
-      const sanitizedProfile = {
-        ambientWave: sanitizeAmbientWave(importedProfile.ambientWave),
-        reactiveBorder: sanitizeReactiveBorder(importedProfile.reactiveBorder),
-        flowBorder: sanitizeFlowBorder(importedProfile.flowBorder),
-        sideBars: sanitizeSideBars(importedProfile.sideBars),
-        flatRipples: sanitizeFlatRipples(importedProfile.flatRipples),
-        dotParticles: sanitizeDotParticles(importedProfile.dotParticles),
-        rippleFlow: sanitizeRippleFlow(importedProfile.rippleFlow),
-        snowBubbleParticles: sanitizeSnowBubbleParticles(importedProfile.snowBubbleParticles),
-        edgeCrystals: sanitizeEdgeCrystals(importedProfile.edgeCrystals),
-        sideBraids: sanitizeSideBraids(importedProfile.sideBraids)
-      };
+      const sanitizedProfile = sanitizeSettings(importedProfile);
 
       const profileName = path.basename(filePath, ".json");
       const profiles = settingsStore.loadProfiles();

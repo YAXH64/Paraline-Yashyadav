@@ -426,15 +426,5 @@ module.exports = {
   createDefaultSettings,
   createThemeDefaults,
   createSettingsStore,
-  sanitizeSettings,
-  sanitizeAmbientWave,
-  sanitizeReactiveBorder,
-  sanitizeFlowBorder,
-  sanitizeSideBars,
-  sanitizeFlatRipples,
-  sanitizeDotParticles,
-  sanitizeRippleFlow,
-  sanitizeSnowBubbleParticles,
-  sanitizeEdgeCrystals,
-  sanitizeSideBraids
+  sanitizeSettings
 };
