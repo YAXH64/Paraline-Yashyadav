@@ -83,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
             glowStrength: { label: "Glow Strength", options: ["soft", "medium", "strong", "custom"] },
             braidWidth: { label: "Braid Width", options: ["thin", "medium", "thick", "custom"] },
             flowDirection: { label: "Flow Direction", options: ["topDown", "bottomUp"] }
-        }
+        },
+        auroraDrift: {}
     };
 
     let cachedSettings = {};

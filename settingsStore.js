@@ -79,10 +79,11 @@ const DEFAULT_SETTINGS = Object.freeze({
     customGap: 7,
     customSensitivity: 30,
     customSpeed: 30
-  })
+  }),
+  auroraDrift: Object.freeze({})
 });
 
-const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"]);
+const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids", "auroraDrift"]);
 const VALID_PERFORMANCE_MODES = new Set(["performance", "balanced", "quality"]);
 const VALID_FPS_LIMITS = new Set(["default", "battery", "unlocked"]);
 const VALID_AMBIENT_TONES = new Set(["blue", "purple", "warm", "custom"]);
@@ -130,7 +131,8 @@ function createDefaultSettings() {
     rippleFlow: { ...DEFAULT_SETTINGS.rippleFlow },
     snowBubbleParticles: { ...DEFAULT_SETTINGS.snowBubbleParticles },
     edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals },
-    sideBraids: { ...DEFAULT_SETTINGS.sideBraids }
+    sideBraids: { ...DEFAULT_SETTINGS.sideBraids },
+    auroraDrift: { ...DEFAULT_SETTINGS.auroraDrift }
   };
 }
 
@@ -145,7 +147,8 @@ function createThemeDefaults() {
     rippleFlow: { ...DEFAULT_SETTINGS.rippleFlow },
     snowBubbleParticles: { ...DEFAULT_SETTINGS.snowBubbleParticles },
     edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals },
-    sideBraids: { ...DEFAULT_SETTINGS.sideBraids }
+    sideBraids: { ...DEFAULT_SETTINGS.sideBraids },
+    auroraDrift: { ...DEFAULT_SETTINGS.auroraDrift }
   };
 }
 
@@ -362,7 +365,8 @@ function sanitizeSettings(input = {}) {
     rippleFlow: sanitizeRippleFlow(source.rippleFlow),
     snowBubbleParticles: sanitizeSnowBubbleParticles(source.snowBubbleParticles),
     edgeCrystals: sanitizeEdgeCrystals(source.edgeCrystals),
-    sideBraids: sanitizeSideBraids(source.sideBraids)
+    sideBraids: sanitizeSideBraids(source.sideBraids),
+    auroraDrift: source.auroraDrift || {}
   };
 }
 

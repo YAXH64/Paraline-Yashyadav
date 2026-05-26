@@ -67,7 +67,8 @@ const THEME_LABELS = {
   rippleFlow: "Ripple Flow",
   snowBubbleParticles: "Snow Particles",
   edgeCrystals: "Edge Crystals",
-  sideBraids: "Side Braids"
+  sideBraids: "Side Braids",
+  auroraDrift: "Aurora Drift"
 };
 
 function createOverlayWindow() {
@@ -361,7 +362,8 @@ function buildMainThemeMenuItems() {
     { value: "rippleFlow", label: "Ripple Flow" },
     { value: "snowBubbleParticles", label: "Snow Particles" },
     { value: "edgeCrystals", label: "Edge Crystals" },
-    { value: "sideBraids", label: "Side Braids" }
+    { value: "sideBraids", label: "Side Braids" },
+    { value: "auroraDrift", label: "Aurora Drift" }
   ];
 
   return themeOptions.map((themeOption) => ({
@@ -1038,6 +1040,10 @@ function buildActiveThemeMenuItems() {
 
   if (visualizerSettings.selectedTheme === "sideBraids") {
     return buildSideBraidsMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "auroraDrift") {
+    return []; // No settings in Phase 1
   }
 
   return buildAmbientWaveMenuItems();

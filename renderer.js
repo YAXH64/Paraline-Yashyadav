@@ -59,6 +59,11 @@ const {
   drawSideBraids
 } = window.ParalineSideBraids;
 
+const {
+  getAuroraDriftAudioMultiplier,
+  drawAuroraDrift
+} = window.ParalineAuroraDrift;
+
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 const FLOW_TARGET_FPS = 60;
@@ -153,6 +158,7 @@ let visualizerState = {
     colorStyle: "cyanPink",
     flowDirection: "topDown"
   },
+  auroraDrift: {},
   paused: false
 };
 
@@ -199,6 +205,10 @@ function getSideBraidsSettings() {
   return visualizerState.sideBraids || {};
 }
 
+function getAuroraDriftSettings() {
+  return visualizerState.auroraDrift || {};
+}
+
 function getActiveAudioMultiplier() {
   if (visualizerState.selectedTheme === "reactiveBorder") {
     return getReactiveInputMultiplier(getReactiveBorderSettings());
@@ -234,6 +244,10 @@ function getActiveAudioMultiplier() {
 
   if (visualizerState.selectedTheme === "sideBraids") {
     return getSideBraidsAudioMultiplier(getSideBraidsSettings());
+  }
+
+  if (visualizerState.selectedTheme === "auroraDrift") {
+    return getAuroraDriftAudioMultiplier();
   }
 
   return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
@@ -370,6 +384,8 @@ function renderFrame(now) {
       activeFrameInterval = PARTICLE_FRAME_INTERVAL;
     } else if (visualizerState.selectedTheme === "sideBraids") {
       activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "auroraDrift") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
     }
   }
 
@@ -482,6 +498,15 @@ function renderFrame(now) {
       settings: getSideBraidsSettings(),
       performanceMode: visualizerState.performanceMode
     });
+  } else if (visualizerState.selectedTheme === "auroraDrift") {
+    drawAuroraDrift({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getAuroraDriftSettings()
+    });
   } else {
     drawAmbientWave({
       context,
@@ -546,10 +571,14 @@ function applySettings(nextSettings) {
     sideBraids: {
       ...visualizerState.sideBraids,
       ...(nextSettings?.sideBraids || {})
+    },
+    auroraDrift: {
+      ...visualizerState.auroraDrift,
+      ...(nextSettings?.auroraDrift || {})
     }
   };
 
-  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"].includes(visualizerState.selectedTheme)) {
+  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids", "auroraDrift"].includes(visualizerState.selectedTheme)) {
     visualizerState.selectedTheme = "ambientWave";
   }
 
@@ -1063,6 +1092,11 @@ const THEME_INFOS = {
         ]
       }
     ]
+  },
+  auroraDrift: {
+    label: "Aurora Drift",
+    settingsHeader: "Aurora Drift",
+    options: []
   }
 };
 
