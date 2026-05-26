@@ -87,6 +87,7 @@ let flowTravelDistance = 0;
 let visualizerState = {
   selectedTheme: "ambientWave",
   performanceMode: "balanced",
+  fpsLimit: "default",
   ambientWave: {
     tone: "blue",
     sensitivity: "medium",
@@ -347,27 +348,36 @@ function renderFrame(now) {
     return;
   }
 
-  let activeFrameInterval = FRAME_INTERVAL;
+  let activeFrameInterval = 0;
+  const currentLimit = visualizerState.fpsLimit || "default";
 
-  if (visualizerState.selectedTheme === "flowBorder") {
-    activeFrameInterval = FLOW_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "dotParticles") {
-    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "rippleFlow") {
-    activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
-    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "edgeCrystals") {
-    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "sideBraids") {
-    activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+  if (currentLimit === "battery") {
+    activeFrameInterval = 1000 / 30; // Lock at 30 FPS Globally
+  } else if (currentLimit === "unlocked") {
+    activeFrameInterval = 0; // Unlocked / Native Monitor Refresh Rate
+  } else {
+    // default dynamic capped limits
+    activeFrameInterval = FRAME_INTERVAL;
+    if (visualizerState.selectedTheme === "flowBorder") {
+      activeFrameInterval = FLOW_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "dotParticles") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "rippleFlow") {
+      activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "edgeCrystals") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "sideBraids") {
+      activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+    }
   }
 
   if (lastFrameAt && now - lastFrameAt < activeFrameInterval) {
     return;
   }
 
-  const deltaMs = lastFrameAt ? now - lastFrameAt : activeFrameInterval;
+  const deltaMs = lastFrameAt ? now - lastFrameAt : (activeFrameInterval || 16.6);
   lastFrameAt = now;
 
   if (!visualizerState.paused) {
@@ -496,6 +506,7 @@ function applySettings(nextSettings) {
     ...visualizerState,
     ...nextSettings,
     performanceMode: nextSettings.performanceMode || visualizerState.performanceMode,
+    fpsLimit: nextSettings.fpsLimit || visualizerState.fpsLimit,
     ambientWave: {
       ...visualizerState.ambientWave,
       ...(nextSettings?.ambientWave || {})
