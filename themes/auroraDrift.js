@@ -180,6 +180,53 @@
     return lerpHSL(a, b, frac);
   }
 
+  function hexToHsl(hex) {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    let r = parseInt(hex.substring(0, 2), 16) / 255;
+    let g = parseInt(hex.substring(2, 4), 16) / 255;
+    let b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return [
+      Math.round(h * 360),
+      Math.round(s * 100),
+      Math.round(l * 100)
+    ];
+  }
+
+  function getAuroraColorStops(position, stops) {
+    const t = ((position % 1) + 1) % 1;
+    if (t <= stops[0].pos) return stops[0].hsl;
+    if (t >= stops[stops.length - 1].pos) return stops[stops.length - 1].hsl;
+    
+    for (let i = 0; i < stops.length - 1; i++) {
+      const curr = stops[i];
+      const next = stops[i + 1];
+      if (t >= curr.pos && t <= next.pos) {
+        const frac = (t - curr.pos) / (next.pos - curr.pos);
+        return lerpHSL(curr.hsl, next.hsl, frac);
+      }
+    }
+    return stops[0].hsl;
+  }
+
   function hsla(hsl, alpha) {
     return `hsla(${hsl[0].toFixed(1)}, ${hsl[1].toFixed(1)}%, ${hsl[2].toFixed(1)}%, ${alpha})`;
   }
@@ -290,9 +337,29 @@
       activeLayersIndices = [0, 1, 2, 3, 4, 5];
     }
 
+    // If layerCount is customized in advanced settings, override active layers indices
+    if (settings.layerCount !== undefined) {
+      const count = Math.max(1, Math.min(6, Math.round(settings.layerCount)));
+      if (count === 1) activeLayersIndices = [2];
+      else if (count === 2) activeLayersIndices = [0, 3];
+      else if (count === 3) activeLayersIndices = [0, 2, 4];
+      else if (count === 4) activeLayersIndices = [0, 1, 3, 4];
+      else if (count === 5) activeLayersIndices = [0, 1, 2, 3, 4];
+      else activeLayersIndices = [0, 1, 2, 3, 4, 5];
+    }
+
     // 9. Resolve Color Palette
     const paletteKey = settings.colorPalette || "cyanViolet";
     const palette = PALETTES[paletteKey] || PALETTES.cyanViolet;
+
+    // Parse custom stops if present
+    let customStops = null;
+    if (Array.isArray(settings.gradientStops) && settings.gradientStops.length >= 2) {
+      customStops = settings.gradientStops.map(stop => ({
+        pos: stop.pos,
+        hsl: hexToHsl(stop.color)
+      }));
+    }
 
     const cfg = {
       intensity: intensityFactor,
@@ -307,8 +374,56 @@
       audioReactivityScale: styleAudio * audioReactivityScale,
       activeLayersIndices: activeLayersIndices,
       palette: palette,
-      performanceMode: options.performanceMode || "balanced"
+      customStops: customStops,
+      performanceMode: options.performanceMode || "balanced",
+
+      // Volumetric Glow & Bloom
+      baseGlowRadius: settings.baseGlowRadius !== undefined ? parseFloat(settings.baseGlowRadius) : 1.0,
+      peakGlowRadius: settings.peakGlowRadius !== undefined ? parseFloat(settings.peakGlowRadius) : 1.0,
+      crestBrightness: settings.crestBrightness !== undefined ? parseFloat(settings.crestBrightness) : 1.0,
+      bloomStrength: settings.bloomStrength !== undefined ? parseFloat(settings.bloomStrength) : 1.0,
+      glowFalloff: settings.glowFalloff !== undefined ? parseFloat(settings.glowFalloff) : 1.0,
+
+      // Turbulence Controls
+      primaryFrequency: settings.primaryFrequency !== undefined ? parseFloat(settings.primaryFrequency) : 1.0,
+      secondaryFrequency: settings.secondaryFrequency !== undefined ? parseFloat(settings.secondaryFrequency) : 1.0,
+      turbulenceComplexity: settings.turbulenceComplexity !== undefined ? parseFloat(settings.turbulenceComplexity) : 1.0,
+      motionSmoothness: settings.motionSmoothness !== undefined ? parseFloat(settings.motionSmoothness) : 1.0,
+      driftSpeed: settings.driftSpeed !== undefined ? parseFloat(settings.driftSpeed) : 1.0,
+
+      // Audio Response
+      bassInfluence: settings.bassInfluence !== undefined ? parseFloat(settings.bassInfluence) : 1.0,
+      midInfluence: settings.midInfluence !== undefined ? parseFloat(settings.midInfluence) : 1.0,
+      highShimmer: settings.highShimmer !== undefined ? parseFloat(settings.highShimmer) : 1.0,
+      audioSmoothing: settings.audioSmoothing !== undefined ? parseFloat(settings.audioSmoothing) : 1.0,
+      peakSensitivity: settings.peakSensitivity !== undefined ? parseFloat(settings.peakSensitivity) : 1.0,
+
+      // Ribbon shape controls
+      ribbonHeight: settings.ribbonHeight !== undefined ? parseFloat(settings.ribbonHeight) : 1.0,
+      ribbonWidth: settings.ribbonWidth !== undefined ? parseFloat(settings.ribbonWidth) : 1.0,
+      edgeSoftness: settings.edgeSoftness !== undefined ? parseFloat(settings.edgeSoftness) : 1.0,
+      layerSeparation: settings.layerSeparation !== undefined ? parseFloat(settings.layerSeparation) : 1.0,
+      crestSharpness: settings.crestSharpness !== undefined ? parseFloat(settings.crestSharpness) : 1.0,
+
+      // Layer depth controls
+      layerCount: settings.layerCount !== undefined ? Math.round(settings.layerCount) : 5,
+      backgroundHaze: settings.backgroundHaze !== undefined ? parseFloat(settings.backgroundHaze) : 1.0,
+      foregroundHighlight: settings.foregroundHighlight !== undefined ? parseFloat(settings.foregroundHighlight) : 1.0,
+      parallaxDepth: settings.parallaxDepth !== undefined ? parseFloat(settings.parallaxDepth) : 1.0,
+
+      // Ambient Atmosphere controls
+      ambientOpacity: settings.ambientOpacity !== undefined ? parseFloat(settings.ambientOpacity) : 1.0,
+      colorSaturation: settings.colorSaturation !== undefined ? parseFloat(settings.colorSaturation) : 1.0,
+      atmosphericFade: settings.atmosphericFade !== undefined ? parseFloat(settings.atmosphericFade) : 1.0,
+      edgeFeathering: settings.edgeFeathering !== undefined ? parseFloat(settings.edgeFeathering) : 1.0
     };
+
+    function resolveColor(pos) {
+      if (cfg.customStops) {
+        return getAuroraColorStops(pos, cfg.customStops);
+      }
+      return getAuroraColor(pos, cfg.palette);
+    }
 
     // Calculate elapsed frame time (dt) safely
     const dt = lastTime ? Math.min(0.1, Math.max(0.001, time - lastTime)) : 1 / 60;
@@ -317,9 +432,11 @@
     // ----- Majestic, Jitter-Free Audio Processing -----
     const rawLevel = smoothedLevel || 0.24;
 
-    // Proper attack/release smoothing function with frame-rate independence
+    // Proper attack/release smoothing function with frame-rate independence, modulated by advanced audio filters
     function smoothSignal(current, target, attack, release) {
-      const k = target > current ? attack : release;
+      const attackK = attack * cfg.peakSensitivity;
+      const releaseK = release / cfg.audioSmoothing;
+      const k = target > current ? attackK : releaseK;
       const rate = 1 - Math.exp(-k * dt * 60);
       return current + (target - current) * rate;
     }
@@ -331,72 +448,64 @@
     averageVolume = smoothSignal(averageVolume, rawLevel, 0.003, 0.003);
 
     // 3. Bass Beat / Surge Detector
-    // Detect positive surges above 1.25x the long-term running average
     const rawSurge = Math.max(0, rawLevel - averageVolume * 1.25);
-    // Smooth the bass state (majestic, slower release)
-    const bassTarget = rawSurge * 1.6;
+    const bassTarget = rawSurge * 1.6 * cfg.bassInfluence;
     bassLevelState = smoothSignal(bassLevelState, bassTarget, 0.07, 0.02);
 
     // Manage traveling shockwaves lifespan (max 1.8 seconds)
     activePulses = activePulses.filter(p => (time - p.birth) < 1.8);
-    // Trigger a new traveling shockwave if we detect a dynamic bass surge
     // Limit to max 4 active concurrent pulses to prevent rendering overhead and maintain 60 FPS
     if (rawSurge > 0.16 && (time - lastPulseTime) > 0.38 && activePulses.length < 4) {
       activePulses.push({
         birth: time,
         intensity: Math.min(1.0, rawSurge * 1.8 * cfg.audioReactivityScale),
-        speed: 260 + Math.random() * 80 // speed of upward travel (pixels/second)
+        speed: 260 + Math.random() * 80
       });
       lastPulseTime = time;
     }
 
-    // 4. Mid-Range Envelope (vocals, melodies, expressive instruments)
-    // Filters out high-speed cymbals and static bass by using a moderate follower
+    // 4. Mid-Range Envelope (Expressiveness)
     const midTarget = rawLevel;
     midLevelState = smoothSignal(midLevelState, midTarget, 0.06, 0.06);
-    // Track standard deviation/variance to measure melodic activity
     midVariance = smoothSignal(midVariance, Math.abs(rawLevel - midLevelState), 0.05, 0.05);
-    const expressiveness = Math.min(1.0, midLevelState * 0.7 + midVariance * 1.6);
+    const expressiveness = Math.min(1.0, (midLevelState * 0.7 + midVariance * 1.6) * cfg.midInfluence);
 
     // 5. High-Frequency Treble Shimmer
-    // Extracted using a high-pass derivative (instantaneous minus smoothed volume)
     const trebleTransient = Math.max(0, rawLevel - localAudioLevel);
     shimmerLevelState = smoothSignal(shimmerLevelState, trebleTransient, 0.18, 0.18);
 
     // ----- Musical Emotion Engine -----
     const emotionFactor = Math.min(1.3, Math.max(0.16, (bassLevelState * 0.45 + expressiveness * 0.55 + localAudioLevel * 0.2)));
 
-    const activeSpeed = cfg.speed * (0.42 + emotionFactor * 1.15); // faster internal movement on beats
-    const activeTurbulence = cfg.turbulence * (0.35 + emotionFactor * 1.10); // richer folding
-    const activeGlow = cfg.glow * (0.55 + emotionFactor * 0.25); // very gentle brightness swell
+    const activeSpeed = cfg.speed * (0.42 + emotionFactor * 1.15) * cfg.driftSpeed;
+    const activeTurbulence = (cfg.turbulence * (0.35 + emotionFactor * 1.10)) / cfg.motionSmoothness;
+    const activeGlow = cfg.glow * (0.55 + emotionFactor * 0.25);
 
-    // Accumulate horizontal and vertical motion rates based on time and emotional factor
     globalDriftPhase += dt * 0.009 * activeSpeed;
     energyFlowOffset += dt * (0.28 + emotionFactor * 0.90) * activeSpeed;
 
-    // High-frequency temporal noise for magical atmospheric electric flicker
-    const shimmerNoise = Math.sin(time * 66.0) * shimmerLevelState * 0.13 * cfg.audioReactivityScale;
-    const shimmerSparkle = Math.cos(time * 76.0) * shimmerLevelState * 0.22 * cfg.audioReactivityScale;
+    const shimmerNoise = Math.sin(time * 66.0) * shimmerLevelState * 0.13 * cfg.audioReactivityScale * cfg.highShimmer;
+    const shimmerSparkle = Math.cos(time * 76.0) * shimmerLevelState * 0.22 * cfg.audioReactivityScale * cfg.highShimmer;
 
-    // Dynamic color HSL adjustment based on music energy (subtle, tasteful boosting)
+    // Dynamic color HSL adjustment based on music energy
     function adjustHSL(baseHSL) {
       return [
         baseHSL[0],
-        Math.min(94, baseHSL[1] + localAudioLevel * 8.0 * cfg.audioReactivityScale), // subtle saturation boost
-        Math.min(74, baseHSL[2] + localAudioLevel * 3.0 * cfg.audioReactivityScale)  // extremely soft luminosity boost
+        Math.min(100, baseHSL[1] * cfg.colorSaturation + localAudioLevel * 8.0 * cfg.audioReactivityScale),
+        Math.min(74, baseHSL[2] + localAudioLevel * 3.0 * cfg.audioReactivityScale)
       ];
     }
 
-    // ----- 1. Horizon Atmospheric Haze (Diffusion & Softness) -----
-    const horizonHeight = height * 0.38; // lower horizon height
+    // ----- 1. Horizon Atmospheric Haze -----
+    const horizonHeight = height * 0.38;
     const horizonGrad = ctx.createLinearGradient(0, height - horizonHeight, 0, height);
     const ambientColorPos = globalDriftPhase * 0.95;
-    const ambientHSL = adjustHSL(getAuroraColor(ambientColorPos, cfg.palette));
+    const ambientHSL = adjustHSL(resolveColor(ambientColorPos));
 
     horizonGrad.addColorStop(0, hsla(ambientHSL, 0));
-    horizonGrad.addColorStop(0.35, hsla(ambientHSL, 0.02 * activeGlow));
-    horizonGrad.addColorStop(0.7, hsla(ambientHSL, 0.06 * activeGlow));
-    horizonGrad.addColorStop(1, hsla(ambientHSL, 0.09 * activeGlow));
+    horizonGrad.addColorStop(0.35, hsla(ambientHSL, 0.02 * activeGlow * cfg.ambientOpacity));
+    horizonGrad.addColorStop(0.7, hsla(ambientHSL, 0.06 * activeGlow * cfg.ambientOpacity));
+    horizonGrad.addColorStop(1, hsla(ambientHSL, 0.09 * activeGlow * cfg.ambientOpacity));
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -404,7 +513,7 @@
     ctx.fillRect(0, height - horizonHeight, width, horizonHeight);
     ctx.restore();
 
-    // ----- 2. Draw Aurora Layers (Parallax Depth) -----
+    // ----- 2. Draw Aurora Layers -----
     const baseY = height;
 
     for (let i = 0; i < cfg.activeLayersIndices.length; i++) {
@@ -416,7 +525,7 @@
         baseY,
         time,
         layer,
-        layerIndex: i, // use visual index for color offsets
+        layerIndex: i,
         actualLayerIndex: li,
         cfg,
         activeSpeed,
@@ -426,6 +535,7 @@
         shimmerNoise,
         shimmerSparkle,
         adjustHSL,
+        resolveColor,
         audioBrightness: 1.0 + bassLevelState * 0.15 * cfg.audioReactivityScale,
       });
     }
@@ -448,29 +558,31 @@
       shimmerNoise,
       shimmerSparkle,
       adjustHSL,
+      resolveColor,
       audioBrightness
     } = opts;
 
-    // Performance adaptation: scale visual resolution steps based on Performance Mode
     const step = cfg.performanceMode === "performance" ? 12 : 6;
-    const ribbonWidth = width * layer.widthScale;
+    const ribbonWidth = width * layer.widthScale * cfg.ribbonWidth;
     const xOffset = (width - ribbonWidth) * 0.5;
 
     // Unique offsets to guarantee layers flow out-of-sync
-    const layerPhaseOffset = actualLayerIndex * 1.63;
+    const layerPhaseOffset = actualLayerIndex * 1.63 * cfg.layerSeparation;
+
+    // Beautiful parallax layer translation rates
+    const layerParallaxShift = (actualLayerIndex - 2.5) * 40 * cfg.parallaxDepth * Math.sin(time * 0.08);
 
     // ----- Build the Ribbon Crest Coordinates -----
     const points = [];
     for (let x = 0; x <= ribbonWidth; x += step) {
-      const nx = x / ribbonWidth; // normalized position 0..1
+      const nx = x / ribbonWidth;
 
-      // Parallax-driven low-frequency sine waves
       const wave1 = Math.sin(
-        x * layer.frequency + globalDriftPhase * layer.speed * 8.0 + layerPhaseOffset
+        x * layer.frequency * cfg.primaryFrequency + globalDriftPhase * layer.speed * 8.0 + layerPhaseOffset
       );
 
       const wave2 = Math.sin(
-        x * layer.frequency * 2.3 + globalDriftPhase * layer.speed * 4.5 + layerPhaseOffset * 0.7
+        x * layer.frequency * cfg.primaryFrequency * 2.3 + globalDriftPhase * layer.speed * 4.5 + layerPhaseOffset * 0.7
       ) * 0.45;
 
       const wave3 = Math.sin(
@@ -479,20 +591,18 @@
 
       const combinedWave = wave1 + wave2 + wave3;
 
-      // Base heights modulated by global intensity and height settings
-      const maxRise = height * layer.maxHeight * cfg.intensity * cfg.heightMultiplier;
-      const amplitude = layer.baseAmplitude * 0.65 * cfg.intensity * (1.0 + bassLevelState * 0.18 * cfg.audioReactivityScale);
+      const maxRise = height * layer.maxHeight * cfg.intensity * cfg.heightMultiplier * cfg.ribbonHeight;
+      const amplitude = layer.baseAmplitude * 0.65 * cfg.intensity * (1.0 + bassLevelState * 0.18 * cfg.audioReactivityScale) * cfg.ribbonHeight;
       
-      // Vertical breathing drift to make layers feel like floating curtains
       const verticalDrift = Math.sin(time * 0.12 + layerPhaseOffset) * 10;
 
       const riseHeight = maxRise * 0.45 + combinedWave * amplitude + verticalDrift;
 
-      // Edge falloff at left/right screen borders (avoids clipping)
-      const edgeFade = Math.pow(Math.sin(nx * Math.PI), 0.75);
+      // Border Feathering Clipping Fade
+      const edgeFade = Math.pow(Math.sin(nx * Math.PI), 0.75 * (2.0 - cfg.edgeFeathering));
 
       points.push({
-        x: x + xOffset,
+        x: x + xOffset + layerParallaxShift,
         rise: Math.max(2, riseHeight * edgeFade)
       });
     }
@@ -502,30 +612,33 @@
 
     // Get color profile for this specific layer
     const layerColorPos = globalDriftPhase * 0.8 + layer.colorOffset;
-    const baseHSL = adjustHSL(getAuroraColor(layerColorPos, cfg.palette));
+    const baseHSL = adjustHSL(resolveColor(layerColorPos));
 
-    // Compute maximum rise to set gradient bounds
     let maxRise = 0;
     for (let i = 0; i < segmentCount; i++) {
       if (points[i].rise > maxRise) maxRise = points[i].rise;
     }
     if (maxRise < 5) return;
 
-    // ----- DRAW PASS 1: Base Volumetric Curtain (Soft Glow Backdrop) -----
-    const gradTop = baseY - maxRise - 25;
+    // ----- DRAW PASS 1: Base Volumetric Curtain -----
+    const gradTop = baseY - maxRise - 25 * cfg.atmosphericFade;
     const gradBottom = baseY;
 
     const curtainGrad = ctx.createLinearGradient(0, gradTop, 0, gradBottom);
-    let opacityMultiplier = layer.opacity * activeGlow * audioBrightness * (1.0 + shimmerNoise);
-
-    // Dynamic Translucency Protection Clamping
+    
+    // Scale density opacities
+    let depthScale = 1.0;
+    if (actualLayerIndex <= 1) depthScale = cfg.backgroundHaze;
+    else if (actualLayerIndex >= 3) depthScale = cfg.foregroundHighlight;
+    
+    let opacityMultiplier = layer.opacity * activeGlow * audioBrightness * (1.0 + shimmerNoise) * depthScale;
     opacityMultiplier = Math.min(cfg.opacityCap, opacityMultiplier);
 
     curtainGrad.addColorStop(0, hsla(baseHSL, 0));
-    curtainGrad.addColorStop(0.18, hsla(baseHSL, opacityMultiplier * 0.35));
-    curtainGrad.addColorStop(0.42, hsla(baseHSL, opacityMultiplier * 0.70));
+    curtainGrad.addColorStop(Math.min(0.7, 0.18 * (2.0 - cfg.atmosphericFade)), hsla(baseHSL, opacityMultiplier * 0.35));
+    curtainGrad.addColorStop(Math.min(0.9, 0.42 * (2.0 - cfg.atmosphericFade)), hsla(baseHSL, opacityMultiplier * 0.70));
     curtainGrad.addColorStop(0.72, hsla(baseHSL, opacityMultiplier * 0.95));
-    curtainGrad.addColorStop(1, hsla(baseHSL, opacityMultiplier * 0.40)); // soft blend into horizon
+    curtainGrad.addColorStop(1, hsla(baseHSL, opacityMultiplier * 0.40));
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -539,11 +652,14 @@
     ctx.lineTo(points[segmentCount - 1].x, baseY);
     ctx.closePath();
 
-    // Use shared high-performance shadow drawing
+    // Bass Surge Bloom Glow tuners
+    const peakGlowFactor = 1.0 + bassLevelState * 0.5 * cfg.peakGlowRadius;
+    const blurStrengthFactor = cfg.baseGlowRadius * cfg.bloomStrength * peakGlowFactor * Math.pow(cfg.glowFalloff, (2.5 - actualLayerIndex) * 0.2);
+
     if (window.ParalineShared && typeof window.ParalineShared.applyOptimizedShadow === "function") {
-      window.ParalineShared.applyOptimizedShadow(ctx, hsla(baseHSL, opacityMultiplier * 0.25), layer.blur * activeGlow * cfg.blurMultiplier, cfg.performanceMode);
+      window.ParalineShared.applyOptimizedShadow(ctx, hsla(baseHSL, opacityMultiplier * 0.25), layer.blur * activeGlow * cfg.blurMultiplier * blurStrengthFactor, cfg.performanceMode);
     } else {
-      ctx.shadowBlur = layer.blur * activeGlow * cfg.blurMultiplier;
+      ctx.shadowBlur = layer.blur * activeGlow * cfg.blurMultiplier * blurStrengthFactor;
       ctx.shadowColor = hsla(baseHSL, opacityMultiplier * 0.25);
     }
     
@@ -551,25 +667,23 @@
     ctx.fill();
     ctx.restore();
 
-    // ----- DRAW PASS 2: Additive Plasma Filaments (Upward Energy & Folding) -----
+    // ----- DRAW PASS 2: Additive Plasma Filaments -----
     const numFilaments = 20 + actualLayerIndex * 8;
     const filamentPoints = [];
 
-    // Interpolator to query the curtain height at any horizontal point
     function getCrestHeight(x) {
-      const idx = Math.floor((x - xOffset) / step);
+      const idx = Math.floor((x - xOffset - layerParallaxShift) / step);
       if (idx < 0) return points[0].rise;
       if (idx >= points.length - 1) return points[points.length - 1].rise;
-      const frac = ((x - xOffset) / step) - idx;
+      const frac = ((x - xOffset - layerParallaxShift) / step) - idx;
       return points[idx].rise * (1 - frac) + points[idx + 1].rise * frac;
     }
 
-    // Performance adaptation: scale filament vertical resolution
     const vertSegments = cfg.performanceMode === "performance" ? 6 : 12;
 
     for (let fi = 0; fi < numFilaments; fi++) {
-      const fn = fi / (numFilaments - 1 || 1); // 0..1
-      const xBase = xOffset + fn * ribbonWidth;
+      const fn = fi / (numFilaments - 1 || 1);
+      const xBase = xOffset + fn * ribbonWidth + layerParallaxShift;
       const filamentRise = getCrestHeight(xBase);
 
       if (filamentRise < 5) continue;
@@ -577,21 +691,18 @@
       const fPoints = [];
 
       for (let si = 0; si <= vertSegments; si++) {
-        const t = si / vertSegments; // 0..1 (from bottom to top)
-        const d = t * filamentRise;  // distance rising upward from the base
+        const t = si / vertSegments;
+        const d = t * filamentRise;
         const y = baseY - d;
 
-        // 1. Organic slow horizontal sway (varying with height)
         const sway = Math.sin(
           xBase * 0.0028 + d * 0.0009 + time * 0.28 * layer.speed + layerPhaseOffset
         ) * 36;
 
-        // 2. High-frequency turbulence folding, driven by mid-range musical expressiveness (Internal Complexity)
-        const foldPhase = xBase * 0.015 - d * (0.007 + actualLayerIndex * 0.0006) + energyFlowOffset * (0.75 + actualLayerIndex * 0.15) + layerPhaseOffset;
-        const foldAmp = (8 + expressiveness * 45 * activeTurbulence) * (1.0 - t * 0.35);
+        const foldPhase = xBase * 0.015 * cfg.secondaryFrequency - d * (0.007 + actualLayerIndex * 0.0006) + energyFlowOffset * (0.75 + actualLayerIndex * 0.15) + layerPhaseOffset;
+        const foldAmp = (8 + expressiveness * 45 * activeTurbulence) * (1.0 - t * 0.35) * cfg.turbulenceComplexity;
         const fold = Math.sin(foldPhase) * foldAmp;
 
-        // 3. Audio-reactive traveling shockwaves propagating upward (Bass)
         let shockwaveDisplacement = 0;
         for (let pi = 0; pi < activePulses.length; pi++) {
           const p = activePulses[pi];
@@ -606,14 +717,12 @@
             const wave = Math.sin(distToPulse * 0.026 - elapsed * 4.8 + actualLayerIndex * 0.5);
             const decay = Math.exp(-elapsed * 1.35);
             
-            shockwaveDisplacement += wave * env * p.intensity * decay * 10 * cfg.audioReactivityScale; // soft elegant ripple
+            shockwaveDisplacement += wave * env * p.intensity * decay * 10 * cfg.audioReactivityScale;
           }
         }
 
-        // 4. Subtle high-frequency thermal plasma vibration along filament edges (Treble shimmer)
         const vibration = Math.sin(time * 88.0 + d * 0.18) * shimmerLevelState * 2.2 * cfg.intensity * cfg.audioReactivityScale;
 
-        // Combine all displacements: sway, fold, shockwaves, and high-frequency shimmer vibration
         const x = xBase + sway + fold + shockwaveDisplacement + vibration;
 
         fPoints.push({ x, y });
@@ -622,13 +731,11 @@
       filamentPoints.push(fPoints);
     }
 
-    // Single-path rendering batch for excellent GPU performance
     if (filamentPoints.length > 0) {
       const strokeGrad = ctx.createLinearGradient(0, baseY - maxRise, 0, baseY);
       const brightHSL = [baseHSL[0], baseHSL[1], Math.min(baseHSL[2] + 12, 85)];
-      let filOpacity = layer.opacity * 0.55 * activeGlow * audioBrightness * (1.0 + shimmerNoise);
-
-      // Clamp filament opacity cleanly
+      
+      let filOpacity = layer.opacity * 0.55 * activeGlow * audioBrightness * (1.0 + shimmerNoise) * depthScale;
       filOpacity = Math.min(cfg.opacityCap * 1.5, filOpacity);
 
       strokeGrad.addColorStop(0, hsla(brightHSL, 0));
@@ -640,12 +747,12 @@
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       ctx.strokeStyle = strokeGrad;
-      ctx.lineWidth = (1.1 + (1.0 - layer.widthScale) * 0.7 + (actualLayerIndex * 0.32)) * cfg.filamentWidthScale;
+      ctx.lineWidth = (1.1 + (1.0 - layer.widthScale) * 0.7 + (actualLayerIndex * 0.32)) * cfg.filamentWidthScale * cfg.edgeSoftness;
       
       if (window.ParalineShared && typeof window.ParalineShared.applyOptimizedShadow === "function") {
-        window.ParalineShared.applyOptimizedShadow(ctx, hsla(brightHSL, filOpacity * 0.25), layer.blur * 0.42 * activeGlow * cfg.blurMultiplier, cfg.performanceMode);
+        window.ParalineShared.applyOptimizedShadow(ctx, hsla(brightHSL, filOpacity * 0.25), layer.blur * 0.42 * activeGlow * cfg.blurMultiplier * blurStrengthFactor, cfg.performanceMode);
       } else {
-        ctx.shadowBlur = layer.blur * 0.42 * activeGlow * cfg.blurMultiplier;
+        ctx.shadowBlur = layer.blur * 0.42 * activeGlow * cfg.blurMultiplier * blurStrengthFactor;
         ctx.shadowColor = hsla(brightHSL, filOpacity * 0.25);
       }
 
@@ -661,7 +768,7 @@
       ctx.restore();
     }
 
-    // ----- DRAW PASS 3: Brighter Crest Highlights (Luminous Edges with Treble Sparkle) -----
+    // ----- DRAW PASS 3: Brighter Crest Highlights -----
     if (layer.opacity >= 0.11 || cfg.activeLayersIndices.length <= 3) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
@@ -677,20 +784,18 @@
       }
 
       const crestHSL = [baseHSL[0], baseHSL[1], Math.min(baseHSL[2] + 16, 92)];
-      let crestOpacity = layer.opacity * 0.52 * activeGlow * audioBrightness * (1.0 + shimmerSparkle);
-
-      // Clamp crest opacity
+      let crestOpacity = layer.opacity * 0.52 * activeGlow * audioBrightness * (1.0 + shimmerSparkle) * cfg.crestBrightness;
       crestOpacity = Math.min(cfg.opacityCap * 1.8, crestOpacity);
 
       ctx.strokeStyle = hsla(crestHSL, crestOpacity);
-      ctx.lineWidth = (1.6 + layer.blur * 0.05 * activeGlow) * cfg.crestSoftness;
+      ctx.lineWidth = (1.6 + layer.blur * 0.05 * activeGlow) * cfg.crestSoftness * (2.0 - cfg.crestSharpness);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
       if (window.ParalineShared && typeof window.ParalineShared.applyOptimizedShadow === "function") {
-        window.ParalineShared.applyOptimizedShadow(ctx, hsla(baseHSL, crestOpacity * 0.35), layer.blur * 0.55 * activeGlow * cfg.blurMultiplier, cfg.performanceMode);
+        window.ParalineShared.applyOptimizedShadow(ctx, hsla(baseHSL, crestOpacity * 0.35), layer.blur * 0.55 * activeGlow * cfg.blurMultiplier * blurStrengthFactor, cfg.performanceMode);
       } else {
-        ctx.shadowBlur = layer.blur * 0.55 * activeGlow * cfg.blurMultiplier;
+        ctx.shadowBlur = layer.blur * 0.55 * activeGlow * cfg.blurMultiplier * blurStrengthFactor;
         ctx.shadowColor = hsla(baseHSL, crestOpacity * 0.35);
       }
       
