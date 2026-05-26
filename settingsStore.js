@@ -388,37 +388,38 @@ function createSettingsStore(userDataPath) {
     return cleanSettings;
   }
   function loadProfiles() {
-  try {
-    if (!fs.existsSync(profilesPath)) {
+    try {
+      if (!fs.existsSync(profilesPath)) {
+        return {};
+      }
+
+      const fileContent = fs.readFileSync(profilesPath, "utf8");
+      return JSON.parse(fileContent);
+    } catch (_error) {
       return {};
     }
-
-    const fileContent = fs.readFileSync(profilesPath, "utf8");
-    return JSON.parse(fileContent);
-  } catch (_error) {
-    return {};
   }
-}
 
-function saveProfiles(profiles) {
-  fs.mkdirSync(path.dirname(profilesPath), { recursive: true });
+  function saveProfiles(profiles) {
+    fs.mkdirSync(path.dirname(profilesPath), { recursive: true });
 
-  fs.writeFileSync(
-    profilesPath,
-    JSON.stringify(profiles, null, 2)
-  );
+    fs.writeFileSync(
+      profilesPath,
+      JSON.stringify(profiles, null, 2)
+    );
 
-  return profiles;
-}
+    return profiles;
+  }
 
   return {
-  load,
-  save,
-  loadProfiles,
-  saveProfiles,
-  path: settingsPath,
-  profilesPath
-};
+    load,
+    save,
+    loadProfiles,
+    saveProfiles,
+    path: settingsPath,
+    profilesPath
+  };
+}
 
 module.exports = {
   DEFAULT_SETTINGS,
