@@ -158,7 +158,17 @@ let visualizerState = {
     colorStyle: "cyanPink",
     flowDirection: "topDown"
   },
-  auroraDrift: {},
+  auroraDrift: {
+    auroraStyle: "cinematic",
+    intensity: "balanced",
+    height: "medium",
+    glowStrength: "medium",
+    motionSpeed: "balanced",
+    colorPalette: "cyanViolet",
+    audioReactivity: "balanced",
+    softness: "smooth",
+    layerDensity: "balanced"
+  },
   paused: false
 };
 
@@ -247,7 +257,7 @@ function getActiveAudioMultiplier() {
   }
 
   if (visualizerState.selectedTheme === "auroraDrift") {
-    return getAuroraDriftAudioMultiplier();
+    return getAuroraDriftAudioMultiplier(getAuroraDriftSettings());
   }
 
   return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
@@ -505,7 +515,8 @@ function renderFrame(now) {
       height,
       time,
       smoothedLevel,
-      settings: getAuroraDriftSettings()
+      settings: getAuroraDriftSettings(),
+      performanceMode: visualizerState.performanceMode
     });
   } else {
     drawAmbientWave({
@@ -1095,8 +1106,92 @@ const THEME_INFOS = {
   },
   auroraDrift: {
     label: "Aurora Drift",
-    settingsHeader: "Aurora Drift",
-    options: []
+    settingsHeader: "Aurora Drift Settings",
+    options: [
+      {
+        key: "auroraStyle",
+        label: "Aurora Style",
+        choices: [
+          { value: "ambient", label: "Ambient" },
+          { value: "cinematic", label: "Cinematic" },
+          { value: "energetic", label: "Energetic" }
+        ]
+      },
+      {
+        key: "intensity",
+        label: "Intensity",
+        choices: [
+          { value: "subtle", label: "Subtle" },
+          { value: "balanced", label: "Balanced" },
+          { value: "vivid", label: "Vivid" }
+        ]
+      },
+      {
+        key: "height",
+        label: "Height",
+        choices: [
+          { value: "low", label: "Low" },
+          { value: "medium", label: "Medium" },
+          { value: "tall", label: "Tall" }
+        ]
+      },
+      {
+        key: "glowStrength",
+        label: "Glow Strength",
+        choices: [
+          { value: "soft", label: "Soft" },
+          { value: "medium", label: "Medium" },
+          { value: "strong", label: "Strong" }
+        ]
+      },
+      {
+        key: "motionSpeed",
+        label: "Motion Speed",
+        choices: [
+          { value: "calm", label: "Calm" },
+          { value: "balanced", label: "Balanced" },
+          { value: "fast", label: "Fast" }
+        ]
+      },
+      {
+        key: "colorPalette",
+        label: "Color Palette",
+        choices: [
+          { value: "cyanViolet", label: "Cyan & Violet" },
+          { value: "emeraldSky", label: "Emerald Sky" },
+          { value: "sunsetDream", label: "Sunset Dream" },
+          { value: "frozenBlue", label: "Frozen Blue" },
+          { value: "monochrome", label: "Monochrome" }
+        ]
+      },
+      {
+        key: "audioReactivity",
+        label: "Audio Reactivity",
+        choices: [
+          { value: "subtle", label: "Subtle" },
+          { value: "balanced", label: "Balanced" },
+          { value: "responsive", label: "Responsive" }
+        ]
+      },
+      {
+        key: "softness",
+        label: "Softness",
+        choices: [
+          { value: "misty", label: "Misty" },
+          { value: "smooth", label: "Smooth" },
+          { value: "defined", label: "Defined" }
+        ]
+      },
+      {
+        key: "layerDensity",
+        label: "Layer Density",
+        choices: [
+          { value: "light", label: "Light" },
+          { value: "balanced", label: "Balanced" },
+          { value: "rich", label: "Rich" }
+        ]
+      }
+    ]
   }
 };
 

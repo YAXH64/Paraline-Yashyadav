@@ -84,7 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
             braidWidth: { label: "Braid Width", options: ["thin", "medium", "thick", "custom"] },
             flowDirection: { label: "Flow Direction", options: ["topDown", "bottomUp"] }
         },
-        auroraDrift: {}
+        auroraDrift: {
+            auroraStyle: { label: "Aurora Style", options: ["ambient", "cinematic", "energetic"] },
+            intensity: { label: "Intensity", options: ["subtle", "balanced", "vivid"] },
+            height: { label: "Height", options: ["low", "medium", "tall"] },
+            glowStrength: { label: "Glow Strength", options: ["soft", "medium", "strong"] },
+            motionSpeed: { label: "Motion Speed", options: ["calm", "balanced", "fast"] },
+            colorPalette: { label: "Color Palette", options: ["cyanViolet", "emeraldSky", "sunsetDream", "frozenBlue", "monochrome"] },
+            audioReactivity: { label: "Audio Reactivity", options: ["subtle", "balanced", "responsive"] },
+            softness: { label: "Softness", options: ["misty", "smooth", "defined"] },
+            layerDensity: { label: "Layer Density", options: ["light", "balanced", "rich"] }
+        }
     };
 
     let cachedSettings = {};
