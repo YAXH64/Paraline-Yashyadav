@@ -80,7 +80,17 @@ const DEFAULT_SETTINGS = Object.freeze({
     customSensitivity: 30,
     customSpeed: 30
   }),
-  auroraDrift: Object.freeze({})
+  auroraDrift: Object.freeze({
+    auroraStyle: "cinematic",
+    intensity: "balanced",
+    height: "medium",
+    glowStrength: "medium",
+    motionSpeed: "balanced",
+    colorPalette: "cyanViolet",
+    audioReactivity: "balanced",
+    softness: "smooth",
+    layerDensity: "balanced"
+  })
 });
 
 const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids", "auroraDrift"]);
@@ -116,6 +126,15 @@ const VALID_BRAID_WIDTH = new Set(["thin", "medium", "thick", "custom"]);
 const VALID_BRAID_MOTION = new Set(["calm", "balanced", "energetic", "custom"]);
 const VALID_BRAID_COLORS = new Set(["cyanPink", "bluePurple", "redBlue", "white", "custom"]);
 const VALID_BRAID_DIRECTION = new Set(["topDown", "bottomUp"]);
+const VALID_AURORA_STYLES = new Set(["ambient", "cinematic", "energetic"]);
+const VALID_AURORA_INTENSITIES = new Set(["subtle", "balanced", "vivid"]);
+const VALID_AURORA_HEIGHTS = new Set(["low", "medium", "tall"]);
+const VALID_AURORA_GLOWS = new Set(["soft", "medium", "strong"]);
+const VALID_AURORA_SPEEDS = new Set(["calm", "balanced", "fast"]);
+const VALID_AURORA_PALETTES = new Set(["cyanViolet", "emeraldSky", "sunsetDream", "frozenBlue", "monochrome"]);
+const VALID_AURORA_AUDIO = new Set(["subtle", "balanced", "responsive"]);
+const VALID_AURORA_SOFTNESS = new Set(["misty", "smooth", "defined"]);
+const VALID_AURORA_DENSITY = new Set(["light", "balanced", "rich"]);
 
 function createDefaultSettings() {
   return {
@@ -300,6 +319,20 @@ function sanitizeSideBraids(input = {}) {
   };
 }
 
+function sanitizeAuroraDrift(input = {}) {
+  return {
+    auroraStyle: pick(input.auroraStyle, VALID_AURORA_STYLES, DEFAULT_SETTINGS.auroraDrift.auroraStyle),
+    intensity: pick(input.intensity, VALID_AURORA_INTENSITIES, DEFAULT_SETTINGS.auroraDrift.intensity),
+    height: pick(input.height, VALID_AURORA_HEIGHTS, DEFAULT_SETTINGS.auroraDrift.height),
+    glowStrength: pick(input.glowStrength, VALID_AURORA_GLOWS, DEFAULT_SETTINGS.auroraDrift.glowStrength),
+    motionSpeed: pick(input.motionSpeed, VALID_AURORA_SPEEDS, DEFAULT_SETTINGS.auroraDrift.motionSpeed),
+    colorPalette: pick(input.colorPalette, VALID_AURORA_PALETTES, DEFAULT_SETTINGS.auroraDrift.colorPalette),
+    audioReactivity: pick(input.audioReactivity, VALID_AURORA_AUDIO, DEFAULT_SETTINGS.auroraDrift.audioReactivity),
+    softness: pick(input.softness, VALID_AURORA_SOFTNESS, DEFAULT_SETTINGS.auroraDrift.softness),
+    layerDensity: pick(input.layerDensity, VALID_AURORA_DENSITY, DEFAULT_SETTINGS.auroraDrift.layerDensity)
+  };
+}
+
 function migrateLegacySettings(input = {}) {
   if (VALID_MAIN_THEMES.has(input.selectedTheme) && !input.edgeFlutter) {
     return input;
@@ -366,7 +399,7 @@ function sanitizeSettings(input = {}) {
     snowBubbleParticles: sanitizeSnowBubbleParticles(source.snowBubbleParticles),
     edgeCrystals: sanitizeEdgeCrystals(source.edgeCrystals),
     sideBraids: sanitizeSideBraids(source.sideBraids),
-    auroraDrift: source.auroraDrift || {}
+    auroraDrift: sanitizeAuroraDrift(source.auroraDrift)
   };
 }
 
