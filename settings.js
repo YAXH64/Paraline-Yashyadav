@@ -200,6 +200,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const launchCheckbox = document.getElementById('launch-on-startup-checkbox');
+    if (launchCheckbox) {
+        launchCheckbox.addEventListener('change', (e) => {
+            if (window.visualizerSettings) {
+                window.visualizerSettings.update({
+                    launchOnStartup: e.target.checked
+                });
+            }
+        });
+    }
+
+    const fpsLimitSelector = document.getElementById('fps-limit-selector');
+    if (fpsLimitSelector) {
+        fpsLimitSelector.addEventListener('change', (e) => {
+            updateFpsOutcomeDisplay(e.target.value);
+            if (window.visualizerSettings) {
+                window.visualizerSettings.update({
+                    fpsLimit: e.target.value
+                });
+            }
+        });
+    }
+
+    function updateFpsOutcomeDisplay(val) {
+        document.querySelectorAll('.fps-outcome').forEach(el => el.style.display = 'none');
+        const targetEl = document.getElementById(`fps-outcome-${val}`);
+        if (targetEl) {
+            targetEl.style.display = 'block';
+        }
+    }
+
     // ----------------------------------------
     // PRESET LOGIC (ADVANCED TAB)
     // ----------------------------------------
@@ -528,6 +559,19 @@ refreshThemeProfiles();
                 performanceModeSelector.value = settings.performanceMode;
             }
             
+            const launchCheckbox = document.getElementById('launch-on-startup-checkbox');
+            if (launchCheckbox) {
+                launchCheckbox.checked = !!settings.launchOnStartup;
+            }
+            
+            if (settings.fpsLimit) {
+                const selector = document.getElementById('fps-limit-selector');
+                if (selector) {
+                    selector.value = settings.fpsLimit;
+                    updateFpsOutcomeDisplay(settings.fpsLimit);
+                }
+            }
+            
             // set custom variables into UI if they exist globally or on the active theme
             if (settings.customColors && settings.customColors.length === 3) {
                 color1.value = settings.customColors[0];
@@ -554,6 +598,19 @@ refreshThemeProfiles();
             }
             if (nextSettings.hidden !== undefined) {
                 updateHideButtonState(nextSettings.hidden);
+            }
+            if (nextSettings.launchOnStartup !== undefined) {
+                const checkbox = document.getElementById('launch-on-startup-checkbox');
+                if (checkbox) {
+                    checkbox.checked = !!nextSettings.launchOnStartup;
+                }
+            }
+            if (nextSettings.fpsLimit !== undefined) {
+                const selector = document.getElementById('fps-limit-selector');
+                if (selector) {
+                    selector.value = nextSettings.fpsLimit;
+                    updateFpsOutcomeDisplay(nextSettings.fpsLimit);
+                }
             }
         });
     } else {
