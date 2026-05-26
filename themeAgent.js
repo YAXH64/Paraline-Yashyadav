@@ -7,7 +7,7 @@ class ThemeAgent {
 
   start() {
     this.stop(); 
-    const config = this.settingsStore.get('themeAutomation');
+    const config = this.settingsStore.load().themeAutomation;
     
     if (!config || !config.enabled) return;
 
@@ -16,7 +16,8 @@ class ThemeAgent {
     this.evaluateAndApplyTheme(config);
     
     this.intervalId = setInterval(() => {
-      const currentConfig = this.settingsStore.get('themeAutomation');
+      // FIXED: Swapped .get() for .load()
+      const currentConfig = this.settingsStore.load().themeAutomation;
       this.evaluateAndApplyTheme(currentConfig);
     }, intervalMs);
   }
@@ -36,10 +37,17 @@ class ThemeAgent {
       const isDaytime = currentHour >= 6 && currentHour < 18; // 6 AM to 6 PM
       const targetTheme = isDaytime ? config.dayTheme : config.nightTheme;
 
-      // Check against 'selectedTheme' to avoid applying if it's already active
-      if (targetTheme && this.settingsStore.get('selectedTheme') !== targetTheme) {
+      // FIXED: Swapped .get() for .load().selectedTheme
+      if (targetTheme && this.settingsStore.load().selectedTheme !== targetTheme) {
         console.log(`[ThemeAgent] Switching theme to: ${targetTheme}`); 
         this.applyThemeCallback(targetTheme);
+        try {
+          if (typeof sendVisualizerSettings === 'function') {
+              sendVisualizerSettings(); 
+          }
+        } catch (err) {
+            console.error('[ThemeAgent] Visualizer update failed:', err);
+        }
       }
     } catch (error) {
       console.error("ThemeAgent failed to evaluate time-based theme.", error);

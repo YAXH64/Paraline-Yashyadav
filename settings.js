@@ -419,3 +419,55 @@ document.addEventListener('DOMContentLoaded', () => {
         renderThemeSettings("ambientWave");
     }
 });
+
+const enableThemeAutomation = document.getElementById('enableThemeAutomation');
+const themeAutoControls = document.getElementById('themeAutoControls');
+const intervalMinutes = document.getElementById('intervalMinutes');
+const dayThemeSelect = document.getElementById('dayThemeSelect');
+const nightThemeSelect = document.getElementById('nightThemeSelect');
+
+function toggleAutoControls(isEnabled) {
+    if (themeAutoControls) {
+        themeAutoControls.style.display = isEnabled ? 'block' : 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Note: If your preload uses window.electron instead of window.api, change it below
+    if (window.api && window.api.getSettings) {
+        const settings = await window.api.getSettings(); 
+        
+        if (enableThemeAutomation) {
+            enableThemeAutomation.checked = settings.enableThemeAutomation || false;
+            toggleAutoControls(enableThemeAutomation.checked);
+        }
+        if (intervalMinutes) intervalMinutes.value = settings.intervalMinutes || 30;
+        if (dayThemeSelect) dayThemeSelect.value = settings.dayTheme || 'ambientWave';
+        if (nightThemeSelect) nightThemeSelect.value = settings.nightTheme || 'ambientWave';
+    }
+});
+
+if (enableThemeAutomation) {
+    enableThemeAutomation.addEventListener('change', (e) => {
+        toggleAutoControls(e.target.checked);
+        window.api.updateSetting('enableThemeAutomation', e.target.checked);
+    });
+}
+
+if (intervalMinutes) {
+    intervalMinutes.addEventListener('change', (e) => {
+        window.api.updateSetting('intervalMinutes', parseInt(e.target.value, 10));
+    });
+}
+
+if (dayThemeSelect) {
+    dayThemeSelect.addEventListener('change', (e) => {
+        window.api.updateSetting('dayTheme', e.target.value);
+    });
+}
+
+if (nightThemeSelect) {
+    nightThemeSelect.addEventListener('change', (e) => {
+        window.api.updateSetting('nightTheme', e.target.value);
+    });
+}
