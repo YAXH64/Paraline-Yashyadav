@@ -208,64 +208,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateAutomationSetting(patch) {
+        if (window.visualizerSettings) {
+            const currentAutomation = cachedSettings.themeAutomation || {};
+            const nextAutomation = { ...currentAutomation, ...patch };
+            cachedSettings.themeAutomation = nextAutomation; // Optimistic local cache update!
+            window.visualizerSettings.update({
+                themeAutomation: nextAutomation
+            });
+        }
+    }
+
     if (enableThemeAutomation) {
         enableThemeAutomation.addEventListener('change', (e) => {
             const isChecked = e.target.checked;
             toggleAutoControls(isChecked);
-            if (window.visualizerSettings) {
-                const currentAutomation = cachedSettings.themeAutomation || {};
-                window.visualizerSettings.update({
-                    themeAutomation: {
-                        ...currentAutomation,
-                        enabled: isChecked
-                    }
-                });
-            }
+            updateAutomationSetting({ enabled: isChecked });
         });
     }
 
     if (intervalMinutes) {
         intervalMinutes.addEventListener('change', (e) => {
             const val = parseInt(e.target.value, 10) || 30;
-            if (window.visualizerSettings) {
-                const currentAutomation = cachedSettings.themeAutomation || {};
-                window.visualizerSettings.update({
-                    themeAutomation: {
-                        ...currentAutomation,
-                        checkIntervalMinutes: val
-                    }
-                });
-            }
+            updateAutomationSetting({ checkIntervalMinutes: val });
         });
     }
 
     if (dayThemeSelect) {
         dayThemeSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (window.visualizerSettings) {
-                const currentAutomation = cachedSettings.themeAutomation || {};
-                window.visualizerSettings.update({
-                    themeAutomation: {
-                        ...currentAutomation,
-                        dayTheme: val
-                    }
-                });
-            }
+            updateAutomationSetting({ dayTheme: e.target.value });
         });
     }
 
     if (nightThemeSelect) {
         nightThemeSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (window.visualizerSettings) {
-                const currentAutomation = cachedSettings.themeAutomation || {};
-                window.visualizerSettings.update({
-                    themeAutomation: {
-                        ...currentAutomation,
-                        nightTheme: val
-                    }
-                });
-            }
+            updateAutomationSetting({ nightTheme: e.target.value });
         });
     }
 
