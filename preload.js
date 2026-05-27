@@ -71,6 +71,14 @@ contextBridge.exposeInMainWorld("visualizerSettings", {
       ipcRenderer.removeListener("show-context-menu", wrapped);
     };
     return ipcRenderer.invoke("visualizer-settings:update", patch);
+  },
+  onFocusModeOpacity(listener) {
+    const wrapped = (_event, payload) => listener(payload);
+    ipcRenderer.on("focus-mode-opacity", wrapped);
+
+    return () => {
+      ipcRenderer.removeListener("focus-mode-opacity", wrapped);
+    };
   }
 });
 

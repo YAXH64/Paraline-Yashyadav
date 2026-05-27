@@ -659,6 +659,13 @@ if (window.visualizerSettings) {
   }).catch(() => {
     // Ignore startup settings errors and keep defaults.
   });
+
+  // Focus Mode: smoothly fade canvas opacity based on user activity
+  if (typeof window.visualizerSettings.onFocusModeOpacity === "function") {
+    window.visualizerSettings.onFocusModeOpacity(({ opacity }) => {
+      canvas.style.opacity = typeof opacity === "number" ? String(opacity) : "1";
+    });
+  }
 }
 
 createDebugPanel();

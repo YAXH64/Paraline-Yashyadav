@@ -80,6 +80,11 @@ const DEFAULT_SETTINGS = Object.freeze({
     customSensitivity: 30,
     customSpeed: 30
   }),
+  focusMode: Object.freeze({
+    enabled: false,
+    dimOpacity: 0.1,
+    idleTimeout: 5
+  }),
   auroraDrift: Object.freeze({
     // Standard settings
     auroraStyle: "cinematic",
@@ -178,6 +183,7 @@ function createDefaultSettings() {
     launchOnStartup: DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: DEFAULT_SETTINGS.selectedTheme,
     performanceMode: DEFAULT_SETTINGS.performanceMode,
+    focusMode: { ...DEFAULT_SETTINGS.focusMode },
     ambientWave: { ...DEFAULT_SETTINGS.ambientWave },
     reactiveBorder: { ...DEFAULT_SETTINGS.reactiveBorder },
     flowBorder: { ...DEFAULT_SETTINGS.flowBorder },
@@ -471,6 +477,17 @@ function migrateLegacySettings(input = {}) {
   return migrated;
 }
 
+function sanitizeFocusMode(input = {}) {
+  const enabled = typeof input.enabled === "boolean" ? input.enabled : DEFAULT_SETTINGS.focusMode.enabled;
+  const dimOpacity = typeof input.dimOpacity === "number" && input.dimOpacity >= 0 && input.dimOpacity <= 1
+    ? input.dimOpacity
+    : DEFAULT_SETTINGS.focusMode.dimOpacity;
+  const idleTimeout = typeof input.idleTimeout === "number" && input.idleTimeout >= 1 && input.idleTimeout <= 60
+    ? input.idleTimeout
+    : DEFAULT_SETTINGS.focusMode.idleTimeout;
+  return { enabled, dimOpacity, idleTimeout };
+}
+
 function sanitizeSettings(input = {}) {
   const source = migrateLegacySettings(input);
 
@@ -479,6 +496,7 @@ function sanitizeSettings(input = {}) {
     selectedTheme: pick(source.selectedTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.selectedTheme),
     performanceMode: pick(source.performanceMode, VALID_PERFORMANCE_MODES, DEFAULT_SETTINGS.performanceMode),
     fpsLimit: pick(source.fpsLimit, VALID_FPS_LIMITS, DEFAULT_SETTINGS.fpsLimit),
+    focusMode: sanitizeFocusMode(source.focusMode),
     ambientWave: sanitizeAmbientWave(source.ambientWave),
     reactiveBorder: sanitizeReactiveBorder(source.reactiveBorder),
     flowBorder: sanitizeFlowBorder(source.flowBorder),

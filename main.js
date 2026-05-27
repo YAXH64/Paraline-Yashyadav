@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, dialog, powerMonitor } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { createAudioBridge } = require("./audioBridge");
@@ -15,6 +15,10 @@ let isHidden = false;
 let settingsStore;
 let visualizerSettings;
 let settingsWindow;
+
+// --- Focus Mode state ---
+let focusModeTimer = null;
+let focusModeCurrentlyDimmed = false;
 
 function createSettingsWindow() {
   if (settingsWindow) {
@@ -174,6 +178,11 @@ function updateSettings(nextSettings) {
     applyStartupSettings(visualizerSettings.launchOnStartup);
   }
 
+  // Re-apply focus mode whenever settings change
+  if (nextSettings.focusMode !== undefined) {
+    applyFocusModeState();
+  }
+
   sendVisualizerSettings();
   refreshTrayMenu();
 }
@@ -196,6 +205,67 @@ function reloadVisualizer() {
   }
 
   overlayWindow.webContents.reloadIgnoringCache();
+}
+
+// --- Focus Mode polling ---
+function sendFocusModeOpacity(opacity) {
+  if (!overlayWindow || overlayWindow.isDestroyed()) {
+    return;
+  }
+  overlayWindow.webContents.send("focus-mode-opacity", { opacity });
+}
+
+function startFocusModePolling() {
+  stopFocusModePolling();
+  focusModeCurrentlyDimmed = false;
+
+  focusModeTimer = setInterval(() => {
+    const fmSettings = visualizerSettings.focusMode;
+    if (!fmSettings || !fmSettings.enabled) {
+      if (focusModeCurrentlyDimmed) {
+        sendFocusModeOpacity(1.0);
+        focusModeCurrentlyDimmed = false;
+      }
+      return;
+    }
+
+    const idleSeconds = powerMonitor.getSystemIdleTime();
+    const thresholdSeconds = fmSettings.idleTimeout || 5;
+
+    if (idleSeconds < thresholdSeconds) {
+      // User is active — dim the visualizer
+      if (!focusModeCurrentlyDimmed) {
+        sendFocusModeOpacity(typeof fmSettings.dimOpacity === "number" ? fmSettings.dimOpacity : 0.1);
+        focusModeCurrentlyDimmed = true;
+      }
+    } else {
+      // User is idle — restore to full opacity
+      if (focusModeCurrentlyDimmed) {
+        sendFocusModeOpacity(1.0);
+        focusModeCurrentlyDimmed = false;
+      }
+    }
+  }, 1000);
+}
+
+function stopFocusModePolling() {
+  if (focusModeTimer) {
+    clearInterval(focusModeTimer);
+    focusModeTimer = null;
+  }
+  // Restore opacity when polling stops
+  if (focusModeCurrentlyDimmed) {
+    sendFocusModeOpacity(1.0);
+    focusModeCurrentlyDimmed = false;
+  }
+}
+
+function applyFocusModeState() {
+  if (visualizerSettings.focusMode && visualizerSettings.focusMode.enabled) {
+    startFocusModePolling();
+  } else {
+    stopFocusModePolling();
+  }
 }
 
 function startSimulatedAudioFallback() {
@@ -1094,6 +1164,12 @@ function refreshTrayMenu() {
       checked: !!visualizerSettings.launchOnStartup,
       click: () => updateSettings({ launchOnStartup: !visualizerSettings.launchOnStartup })
     },
+    {
+      label: "Focus Mode",
+      type: "checkbox",
+      checked: !!(visualizerSettings.focusMode && visualizerSettings.focusMode.enabled),
+      click: () => updateSettings({ focusMode: { ...visualizerSettings.focusMode, enabled: !(visualizerSettings.focusMode && visualizerSettings.focusMode.enabled) } })
+    },
     { type: "separator" },
     {
       label: "Visualizer Mode",
@@ -1361,6 +1437,9 @@ app.whenReady().then(() => {
   createTray();
   sendVisualizerSettings();
 
+  // Start Focus Mode polling if it was previously enabled
+  applyFocusModeState();
+
   // Start the simulated fallback first so any real helper level can immediately disable it.
   startSimulatedAudioFallback();
 
@@ -1395,6 +1474,7 @@ app.on("window-all-closed", () => {
   }
 
   stopSimulatedAudioFallback();
+  stopFocusModePolling();
 
   if (process.platform !== "darwin") {
     app.quit();
