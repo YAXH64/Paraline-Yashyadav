@@ -108,56 +108,6 @@
                     <p>Standard presets. Changes are applied instantly.</p>
                 </header>
 
-                <div class="settings-group">
-                    
-  <h3>Theme Automation</h3>
-
-  <div class="input-group" style="margin-top: 10px;">
-    <label style="display: flex; align-items: center; gap: 10px;">
-      <input type="checkbox" id="enableThemeAutomation" />
-      Enable Time-Based Theme Switching
-    </label>
-  </div>
-
-  <div id="themeAutoControls" style="display: none; margin-top: 15px;">
-    <div class="input-group" style="margin-top: 10px;">
-      <label>Check Interval (Minutes):</label>
-      <input type="number" id="intervalMinutes" min="1" max="120" value="30" style="width: 60px; margin-left: 10px;" />
-    </div>
-
-    <div class="input-group" style="margin-top: 10px;">
-      <label>Daytime Theme (6 AM - 6 PM):</label>
-      <select class="styled-select" id="dayThemeSelect" style="margin-top: 5px;">
-        <option value="ambientWave">Ambient Wave</option>
-        <option value="reactiveBorder">Reactive Border</option>
-        <option value="flowBorder">Flow Border</option>
-        <option value="sideBars">Side Bars</option>
-        <option value="flatRipples">Pulse Lines</option>
-        <option value="dotParticles">Dot Particles</option>
-        <option value="rippleFlow">Ripple Flow</option>
-        <option value="snowBubbleParticles">Snow Particles</option>
-        <option value="edgeCrystals">Edge Crystals</option>
-        <option value="sideBraids">Side Braids</option>
-      </select>
-    </div>
-
-    <div class="input-group" style="margin-top: 10px;">
-      <label>Nighttime Theme (6 PM - 6 AM):</label>
-      <select class="styled-select" id="nightThemeSelect" style="margin-top: 5px;">
-        <option value="ambientWave">Ambient Wave</option>
-        <option value="reactiveBorder">Reactive Border</option>
-        <option value="flowBorder">Flow Border</option>
-        <option value="sideBars">Side Bars</option>
-        <option value="flatRipples">Pulse Lines</option>
-        <option value="dotParticles">Dot Particles</option>
-        <option value="rippleFlow">Ripple Flow</option>
-        <option value="snowBubbleParticles">Snow Particles</option>
-        <option value="edgeCrystals">Edge Crystals</option>
-        <option value="sideBraids">Side Braids</option>
-      </select>
-    </div>
-  </div>
-</div>
 
                 <div class="settings-group">
                     <h3>Visualizer Mode</h3>
@@ -179,16 +129,6 @@
                 </div>
 
 
-                <div class="settings-group">
-                    <h3>Color Mode</h3>
-                    <p class="setting-desc">Adaptive mode follows your Windows accent color and light or dark theme in real time. Manual mode keeps your chosen theme colors.</p>
-                    <div class="input-group" style="margin-top: 10px;">
-                        <select class="styled-select" id="color-mode-selector">
-                            <option value="manual">Manual</option>
-                            <option value="adaptive">Adaptive</option>
-                        </select>
-                    </div>
-                </div>
 
                 <div class="settings-group">
                     <h3>Theme Properties</h3>
@@ -580,6 +520,67 @@
                             <span class="setting-desc" style="font-size: 12px; line-height: 1.45; margin-bottom: 0; display: block;">
                                 Removes artificial caps, rendering at your monitor's native refresh rate (e.g. 75Hz, 144Hz, 240Hz). Delivers butter-smooth, ultra-responsive physics. Best for powerful desktop PCs with dedicated graphics cards and gaming monitors.
                             </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Color Mode</h3>
+                    <p class="setting-desc">Adaptive mode follows your Windows accent color and light or dark theme in real time. Manual mode keeps your chosen theme colors.</p>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <select class="styled-select" id="color-mode-selector">
+                            <option value="manual">Manual</option>
+                            <option value="adaptive">Adaptive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Theme Automation</h3>
+                    <p class="setting-desc">Automatically switch between day and night visualizer modes based on the time of day.</p>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="enableThemeAutomation" />
+                            Enable Time-Based Theme Switching
+                        </label>
+                    </div>
+
+                    <div id="themeAutoControls" style="display: none; margin-top: 15px;">
+                        <div class="input-group" style="margin-top: 10px;">
+                            <label>Check Interval (Minutes):</label>
+                            <input type="number" id="intervalMinutes" min="1" max="120" value="30" style="width: 60px; margin-left: 10px;" />
+                        </div>
+
+                        <div class="input-group" style="margin-top: 10px;">
+                            <label>Daytime Theme (6 AM - 6 PM):</label>
+                            <select class="styled-select" id="dayThemeSelect" style="margin-top: 5px;">
+                                <option value="ambientWave">Ambient Wave</option>
+                                <option value="reactiveBorder">Reactive Border</option>
+                                <option value="flowBorder">Flow Border</option>
+                                <option value="sideBars">Side Bars</option>
+                                <option value="flatRipples">Pulse Lines</option>
+                                <option value="dotParticles">Dot Particles</option>
+                                <option value="rippleFlow">Ripple Flow</option>
+                                <option value="snowBubbleParticles">Snow Particles</option>
+                                <option value="edgeCrystals">Edge Crystals</option>
+                                <option value="sideBraids">Side Braids</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group" style="margin-top: 10px;">
+                            <label>Nighttime Theme (6 PM - 6 AM):</label>
+                            <select class="styled-select" id="nightThemeSelect" style="margin-top: 5px;">
+                                <option value="ambientWave">Ambient Wave</option>
+                                <option value="reactiveBorder">Reactive Border</option>
+                                <option value="flowBorder">Flow Border</option>
+                                <option value="sideBars">Side Bars</option>
+                                <option value="flatRipples">Pulse Lines</option>
+                                <option value="dotParticles">Dot Particles</option>
+                                <option value="rippleFlow">Ripple Flow</option>
+                                <option value="snowBubbleParticles">Snow Particles</option>
+                                <option value="edgeCrystals">Edge Crystals</option>
+                                <option value="sideBraids">Side Braids</option>
+                            </select>
                         </div>
                     </div>
                 </div>
