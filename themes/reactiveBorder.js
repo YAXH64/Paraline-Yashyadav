@@ -2,6 +2,9 @@
   const {
     getGlowMultiplier,
     resolveAnimatedColor,
+    getCachedColor,
+    buildEdgeGradient,
+    getCachedBorderGeometry,
     hexToHsl,
     applyOptimizedShadow,
     getPerformanceMultiplier
@@ -49,6 +52,13 @@
     return base;
   }
 
+  // --- Pre-allocated reusable buffer for color stops ---
+  // Eliminates per-frame array/object allocations in the hot render loop.
+  const MAX_REACTIVE_STOPS = 257;
+  const reactiveColorStops = Array.from({ length: MAX_REACTIVE_STOPS }, () => ({ position: 0, color: "" }));
+
+  // Optimized: Batch all segments into a single stroke per edge using CanvasGradient.
+  // Reduces draw calls from O(segments) to O(1) per edge while preserving gradient colors.
   function drawReactiveBorderEdge(context, options) {
     const {
       x1,
@@ -67,29 +77,34 @@
 
     const edgeLength = Math.hypot(x2 - x1, y2 - y1);
     const segmentCount = Math.max(1, Math.ceil(edgeLength / RAINBOW_SEGMENT_LENGTH));
+    const stopCount = Math.min(segmentCount + 1, MAX_REACTIVE_STOPS);
+    const stopDivisor = Math.max(1, stopCount - 1);
     const perfMultiplier = getPerformanceMultiplier(performanceMode);
     const optimizedBlur = glowBlur * perfMultiplier;
 
-    for (let index = 0; index < segmentCount; index++) {
-      const startT = index / segmentCount;
-      const endT = (index + 1) / segmentCount;
-      const sx = x1 + (x2 - x1) * startT;
-      const sy = y1 + (y2 - y1) * startT;
-      const ex = x1 + (x2 - x1) * endT;
-      const ey = y1 + (y2 - y1) * endT;
-      const normalizedDistance = (startDistance + edgeLength * ((startT + endT) * 0.5)) / perimeter;
-      const color = resolveAnimatedColor(colorStyle, normalizedDistance, hueOffset, opacity);
-
-      context.beginPath();
-      context.moveTo(sx, sy);
-      context.lineTo(ex, ey);
-      context.strokeStyle = color;
-      context.lineWidth = thickness;
-      
-      applyOptimizedShadow(context, color, optimizedBlur, performanceMode);
-      
-      context.stroke();
+    // Build color stops into pre-allocated buffer — one per segment boundary
+    for (let index = 0; index < stopCount; index++) {
+      const t = index / stopDivisor;
+      const normalizedDistance = (startDistance + edgeLength * t) / perimeter;
+      const color = getCachedColor(colorStyle, normalizedDistance, hueOffset, opacity, 0);
+      reactiveColorStops[index].position = t;
+      reactiveColorStops[index].color = color;
     }
+
+    // Create gradient along the edge and draw with a single stroke
+    const gradient = buildEdgeGradient(context, x1, y1, x2, y2, reactiveColorStops, stopCount);
+
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.strokeStyle = gradient;
+    context.lineWidth = thickness;
+
+    // Apply shadow once per edge using the midpoint color for glow
+    const midColor = reactiveColorStops[Math.floor(stopCount / 2)].color;
+    applyOptimizedShadow(context, midColor, optimizedBlur, performanceMode);
+
+    context.stroke();
   }
 
   function drawReactiveBorder(options) {
@@ -113,13 +128,11 @@
         : 2.15;
     const thickness = thicknessBase + smoothedLevel * 1.15 * intensityMultiplier;
     const edgeOffset = Math.max(1, thickness * 0.5) + 1;
-    const left = RAINBOW_BORDER_INSET;
-    const top = RAINBOW_BORDER_INSET;
-    const right = Math.max(left + 1, width - edgeOffset);
-    const bottom = Math.max(top + 1, height - edgeOffset);
-    const horizontal = right - left;
-    const vertical = bottom - top;
-    const perimeter = horizontal * 2 + vertical * 2;
+
+    // Use cached border geometry — only recomputed when dimensions or offset change
+    const geo = getCachedBorderGeometry(width, height, edgeOffset);
+    const { left, top, right, bottom, horizontal, vertical, perimeter } = geo;
+
     const speed = 32 + smoothedLevel * 180 * intensityMultiplier;
     const hueOffset = time * speed;
     const glowBlur = (7 + smoothedLevel * 10) * glowMultiplier;
