@@ -10,6 +10,7 @@ let lastBridgeMode = null;
 let lastBridgeReason = null;
 let audioBridge;
 let fakeTimer;
+let isQuitting = false;
 let tray;
 let isPaused = false;
 let isHidden = false;
@@ -175,7 +176,12 @@ function createOverlayWindow() {
     }, 100);
   });
 
+  overlayWindow.on("close", () => {
+    stopSimulatedAudioFallback();
+  });
+
   overlayWindow.on("closed", () => {
+    stopSimulatedAudioFallback();
     overlayWindow = null;
   });
 }
@@ -274,6 +280,7 @@ function reloadVisualizer() {
     return;
   }
 
+  stopSimulatedAudioFallback();
   overlayWindow.webContents.reloadIgnoringCache();
 }
 
@@ -339,7 +346,9 @@ function applyFocusModeState() {
 }
 
 function startSimulatedAudioFallback() {
-  stopSimulatedAudioFallback();
+  if (fakeTimer) {
+    return;
+  }
 
   fakeTimer = setInterval(() => {
     const now = Date.now();
@@ -384,8 +393,10 @@ function handleAudioBridgeStatusChange(status) {
   }
   lastBridgeMode = status.mode;
   lastBridgeReason = status.reason;
-  if (status.mode !== "helper") {
+  if (status.mode !== "helper" && !isQuitting) {
     startSimulatedAudioFallback();
+  } else {
+    stopSimulatedAudioFallback();
   }
   refreshTrayMenu();
 }
@@ -1577,7 +1588,23 @@ app.on("second-instance", () => {
   }
 });
 
+app.on("before-quit", () => {
+  isQuitting = true;
+  stopSimulatedAudioFallback();
+
+  if (audioBridge) {
+    audioBridge.stop();
+  }
+});
+
+app.on("will-quit", () => {
+  stopSimulatedAudioFallback();
+});
+
 app.on("window-all-closed", () => {
+  isQuitting = true;
+  stopSimulatedAudioFallback();
+
   if (audioBridge) {
     audioBridge.stop();
   }
