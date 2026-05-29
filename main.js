@@ -33,6 +33,7 @@ function createSettingsWindow() {
     minWidth: 800,
     minHeight: 600,
     title: "Paraline Settings",
+    icon: getWindowIconPath(),
     backgroundColor: "#08090d",
     webPreferences: {
       contextIsolation: true,
@@ -154,6 +155,7 @@ function createOverlayWindow() {
     hasShadow: false,
     focusable: true,
     backgroundColor: "#00000000",
+    icon: getWindowIconPath(),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -451,6 +453,27 @@ function openExternalUrl(url) {
   shell.openExternal(url).catch(() => {
     // Ignore shell open failures from tray actions.
   });
+}
+
+function getWindowIconPath() {
+  const iconCandidates = [
+    path.join(process.resourcesPath, "assets", "appicon.ico"),
+    path.join(process.resourcesPath, "assets", "appicon.png"),
+    path.join(process.resourcesPath, "assets", "paraline.png"),
+    path.join(__dirname, "assets", "appicon.ico"),
+    path.join(__dirname, "assets", "appicon.png"),
+    path.join(__dirname, "assets", "paraline.png")
+  ];
+
+  const iconPath = iconCandidates.find((candidatePath) => {
+    try {
+      return require("fs").existsSync(candidatePath);
+    } catch {
+      return false;
+    }
+  });
+
+  return iconPath || path.join(__dirname, "assets", "appicon.png");
 }
 
 function createTrayIcon() {
